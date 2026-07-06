@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salesbot - AI Sales & Marketing Automation Platform</title>
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <!-- Glowing background blurs -->
+    <div class="glow-blur" style="top: 10%; left: 15%;"></div>
+    <div class="glow-blur" style="top: 40%; right: 10%; background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0) 70%);"></div>
+
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <i data-lucide="sparkles" style="width: 0.95rem; height: 0.95rem;"></i>
+        <span>Salesbot AI Core Engine v2.0 Release</span>
+      </div>
+      <h1 class="hero-title">
+        Automate Your Sales &<br>
+        <span>Marketing on Autopilot</span>
+      </h1>
+      <p class="hero-description">
+        Salesbot leverages next-generation language models to qualify leads, orchestrate campaign flows, re-engage customers, and manage calls autonomously.
+      </p>
+      <div class="hero-buttons">
+        <a href="login.html" class="btn btn-primary">
+          Get Started <i data-lucide="arrow-right" style="width: 1.1rem; height: 1.1rem;"></i>
+        </a>
+        <a href="about.html" class="btn btn-secondary">
+          Learn More <i data-lucide="info" style="width: 1.1rem; height: 1.1rem;"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Project Introduction Section -->
+  <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="intro-container">
+        <div class="intro-image-container">
+          <div class="intro-image-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%" style="background:#120c24;">
+              <!-- Deep background gradients -->
+              <defs>
+                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#120c24"/>
+                  <stop offset="100%" stop-color="#080410"/>
+                </linearGradient>
+                <linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.2"/>
+                  <stop offset="50%" stop-color="#6366f1" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="circleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#6366f1"/>
+                </linearGradient>
+              </defs>
+              <rect width="800" height="600" fill="url(#bgGrad)"/>
+              
+              <!-- Abstract grid pattern -->
+              <path d="M 0,100 L 800,100 M 0,200 L 800,200 M 0,300 L 800,300 M 0,400 L 800,400 M 0,500 L 800,500 M 100,0 L 100,600 M 200,0 L 200,600 M 300,0 L 300,600 M 400,0 L 400,600 M 500,0 L 500,600 M 600,0 L 600,600 M 700,0 L 700,600" stroke="url(#gridGrad)" stroke-width="1"/>
+              
+              <!-- Glowing circles representing AI connections -->
+              <circle cx="400" cy="300" r="160" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="5 5" fill="none" opacity="0.3"/>
+              <circle cx="400" cy="300" r="120" stroke="#6366f1" stroke-width="2" fill="none" opacity="0.5"/>
+              <circle cx="400" cy="300" r="60" fill="url(#circleGrad)"/>
+              
+              <!-- Connected nodes -->
+              <circle cx="280" cy="220" r="12" fill="#8b5cf6" filter="drop-shadow(0px 0px 8px #8b5cf6)"/>
+              <circle cx="520" cy="220" r="12" fill="#6366f1" filter="drop-shadow(0px 0px 8px #6366f1)"/>
+              <circle cx="280" cy="380" r="12" fill="#6366f1" filter="drop-shadow(0px 0px 8px #6366f1)"/>
+              <circle cx="520" cy="380" r="12" fill="#8b5cf6" filter="drop-shadow(0px 0px 8px #8b5cf6)"/>
+              
+              <!-- Connection Lines -->
+              <line x1="280" y1="220" x2="400" y2="300" stroke="#8b5cf6" stroke-width="2"/>
+              <line x1="520" y1="220" x2="400" y2="300" stroke="#6366f1" stroke-width="2"/>
+              <line x1="280" y1="380" x2="400" y2="300" stroke="#6366f1" stroke-width="2"/>
+              <line x1="520" y1="380" x2="400" y2="300" stroke="#8b5cf6" stroke-width="2"/>
+              
+              <!-- Text Labels overlay -->
+              <text x="400" y="305" fill="#ffffff" font-family="'Outfit', sans-serif" font-weight="bold" font-size="18" text-anchor="middle">SALESBOT</text>
+              <text x="280" y="195" fill="#f8fafc" font-family="'Inter', sans-serif" font-size="12" text-anchor="middle">Qualify Leads</text>
+              <text x="520" y="195" fill="#f8fafc" font-family="'Inter', sans-serif" font-size="12" text-anchor="middle">Campaigns</text>
+              <text x="280" y="415" fill="#f8fafc" font-family="'Inter', sans-serif" font-size="12" text-anchor="middle">AI Caller</text>
+              <text x="520" y="415" fill="#f8fafc" font-family="'Inter', sans-serif" font-size="12" text-anchor="middle">Feedback</text>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h2 class="section-title">The Future of <span>Outbound Growth</span></h2>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Traditional sales funnels suffer from delayed response times, human resource exhaustion, and inconsistent follow-ups. Salesbot bridges the gap, offering instant, contextual interactions at scale.
+          </p>
+          <div class="intro-bullets">
+            <div class="intro-bullet">
+              <i data-lucide="check-circle-2"></i>
+              <div>
+                <strong>Zero Delayed Leads:</strong> Qualify incoming contacts in under 4 seconds with context-driven questions.
+              </div>
+            </div>
+            <div class="intro-bullet">
+              <i data-lucide="check-circle-2"></i>
+              <div>
+                <strong>Cognitive Campaigning:</strong> Multi-channel outreach using hyper-personalized messages based on past buyer signals.
+              </div>
+            </div>
+            <div class="intro-bullet">
+              <i data-lucide="check-circle-2"></i>
+              <div>
+                <strong>Continuous Learning:</strong> Feedback systems continuously tune responses to improve conversion efficiency.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Smart <span>Platform Modules</span></h2>
+        <p class="section-subtitle">Discover the modules built to streamline operations, save resources, and accelerate growth.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Card 1: Lead Qualification Bot -->
+        <!-- Card 1: AI Telesales -->
+        <a href="ai-assistant.html" class="feature-card" style="text-decoration: none; color: inherit;">
+          <div class="feature-icon-wrapper">
+            <i data-lucide="phone-call"></i>
+          </div>
+          <h3>AI Telesales</h3>
+          <p>State of the art voice bots that converse naturally. Equipped with real-time text-to-speech, speech-to-text, and conversational logic flow.</p>
+          <span class="feature-link">Learn More <i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i></span>
+        </a>
+
+        <!-- Card 2: Promotional Campaign -->
+        <a href="promotions.html" class="feature-card" style="text-decoration: none; color: inherit;">
+          <div class="feature-icon-wrapper">
+            <i data-lucide="megaphone"></i>
+          </div>
+          <h3>Promotional Campaign</h3>
+          <p>Coordinates multi-channel promotions across email, chat, and voice. Adjusts dynamic offers to maximize open rates and engagement metrics.</p>
+          <span class="feature-link">Learn More <i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i></span>
+        </a>
+
+        <!-- Card 3: Event Invitation -->
+        <a href="events.html" class="feature-card" style="text-decoration: none; color: inherit;">
+          <div class="feature-icon-wrapper">
+            <i data-lucide="calendar"></i>
+          </div>
+          <h3>Event Invitation</h3>
+          <p>Creates invitation cards, sends automated outreach, monitors RSVP replies, and schedules follow-up briefings or schedule updates.</p>
+          <span class="feature-link">Learn More <i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistics Section -->
+  <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Qualified Leads Tracked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">0</div>
+          <div class="stat-label">AI Interactions Executed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">0%</div>
+          <div class="stat-label">Average Conversion Boost</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">0%</div>
+          <div class="stat-label">Customer Satisfaction Rating</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Trusted by <span>Industry Leaders</span></h2>
+        <p class="section-subtitle">See what growth operations leads and business owners are saying about our automated systems.</p>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+          </div>
+          <p class="testimonial-text">"Before using Salesbot, our sales reps spent 60% of their time verifying phone numbers and emails. The AI qualification bot completely transformed our funnel."</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">C1</div>
+            <div>
+              <div class="testimonial-name">Customer 1</div>
+              <div class="testimonial-role">VP of Sales, Company 1</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+          </div>
+          <p class="testimonial-text">"The AI telesales caller handles outbound queries with remarkable logic. Our response rates increased instantly, and customers actually enjoy the flow."</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">C2</div>
+            <div>
+              <div class="testimonial-name">Customer 2</div>
+              <div class="testimonial-role">CEO, Company 2</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+            <i data-lucide="star" fill="currentColor"></i>
+          </div>
+          <p class="testimonial-text">"Salesbot re-engaged cold prospects from two years ago, generating $42k in new revenue in just two weeks without any human rep making a call."</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">C3</div>
+            <div>
+              <div class="testimonial-name">Customer 3</div>
+              <div class="testimonial-role">Chief Marketing Officer, Company 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dynamic Footer Bar -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <!-- Login Form Container -->
+  <div class="glow-blur" style="top: 25%; left: 35%; background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(99, 102, 241, 0) 70%);"></div>
+  
+  <div class="form-card">
+    <div class="form-header">
+      <div class="logo" style="justify-content: center; margin-bottom: 1rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        Salesbot
+      </div>
+      <h1 class="form-title" id="login-role-title">User Space Login</h1>
+      <p class="form-subtitle">Enter your credentials below to access your workspace dashboard.</p>
+    </div>
+
+    <!-- Role Selection Tabs -->
+    <div class="form-role-tabs">
+      <div class="role-tab active" data-role="user">User Login</div>
+      <div class="role-tab" data-role="admin">Admin Login</div>
+    </div>
+
+    <!-- Error message display placeholder -->
+    <div id="login-error" class="validation-msg error" style="display: none; margin-bottom: 1.25rem;"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="mail"></i></span>
+          <input type="email" id="email" required class="form-input" placeholder="user@gmail.com">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="password" required class="form-input" placeholder="••••••••">
+        </div>
+      </div>
+
+      <div class="form-checkbox-row">
+        <label class="form-checkbox-label">
+          <input type="checkbox" class="form-checkbox"> Remember Me
+        </label>
+        <a onclick="alert('Demo forgot password: password reset logic will trigger here.')" class="form-link" style="cursor: pointer;">Forgot Password?</a>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-bottom: 1.5rem;">
+        Sign In <i data-lucide="log-in" style="width: 1.1rem; height: 1.1rem;"></i>
+      </button>
+
+      <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+        Don't have an account? <a href="register.html" class="form-link">Register Here</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

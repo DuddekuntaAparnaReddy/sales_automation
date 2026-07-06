@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promotions & Offers - Salesbot</title>
+  <meta name="description" content="Explore exclusive promotional campaigns, discounts, and special offers from Salesbot. Stay updated with the latest deals.">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .promo-page { margin-top: 6.5rem; margin-bottom: 4rem; position: relative; z-index: 1; }
+
+    /* Hero Banner */
+    .promo-hero {
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.12));
+      border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 1.5rem;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .promo-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(99,102,241,0.12), transparent 60%),
+                  radial-gradient(ellipse at 70% 50%, rgba(139,92,246,0.10), transparent 60%);
+      pointer-events: none;
+    }
+    .promo-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.75rem; background: linear-gradient(135deg, #a78bfa, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .promo-hero p  { color: var(--text-secondary); font-size: 1.1rem; max-width: 540px; margin: 0 auto; }
+
+    /* Section Headings */
+    .section-heading {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 1.4rem; font-weight: 700; margin-bottom: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    /* Campaign Cards */
+    .campaigns-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .campaign-card {
+      background: var(--surface-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      display: flex; flex-direction: column;
+      gap: 1rem;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .campaign-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--gradient-primary);
+    }
+    .campaign-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(99,102,241,0.15);
+      border-color: var(--border-focus);
+    }
+    .camp-type-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.75rem;
+      border-radius: 2rem; background: rgba(99,102,241,0.12);
+      color: var(--primary); border: 1px solid rgba(99,102,241,0.2);
+      width: fit-content;
+    }
+    .camp-title    { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.35; }
+    .camp-offer    { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #f59e0b, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .camp-body     { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.65; flex: 1; }
+    .camp-meta     { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .camp-meta-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--text-muted); }
+    .camp-cta-btn  {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem; border-radius: 0.75rem;
+      background: var(--gradient-primary); color: white; font-weight: 600; font-size: 0.9rem;
+      border: none; cursor: pointer; transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(99,102,241,0.2);
+    }
+    .camp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(99,102,241,0.35); }
+
+    /* Empty State */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center; padding: 5rem 2rem;
+      background: var(--bg-secondary); border: 1px dashed var(--border-color);
+      border-radius: 1.25rem;
+    }
+
+    /* Loading skeletons */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-primary) 25%, var(--bg-secondary) 50%, var(--surface-primary) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 0.5rem;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <!-- Dynamic Header -->
+  <header id="site-header" class="site-header"></header>
+
+  <main class="promo-page container">
+    <!-- Glows -->
+    <div class="glow-blur" style="top:10%;left:5%;"></div>
+    <div class="glow-blur" style="bottom:20%;right:10%;background:radial-gradient(circle,rgba(139,92,246,0.1) 0%,rgba(99,102,241,0) 70%);"></div>
+
+    <!-- Hero -->
+    <div class="promo-hero">
+      <h1>🎉 Promotions &amp; Offers</h1>
+      <p>Discover exclusive deals, limited-time discounts, and special campaigns curated just for you.</p>
+    </div>
+
+    <!-- Active Campaigns -->
+    <div class="section-heading">
+      <i data-lucide="megaphone" style="color:var(--primary);width:1.4rem;height:1.4rem;"></i>
+      Active Campaigns
+    </div>
+    <div class="campaigns-grid" id="campaigns-grid">
+      <!-- Skeleton loaders -->
+      <div class="campaign-card"><div class="skeleton" style="height:1rem;width:40%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:1.5rem;width:70%;margin-bottom:0.5rem;"></div><div class="skeleton" style="height:2rem;width:30%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:4rem;"></div></div>
+      <div class="campaign-card"><div class="skeleton" style="height:1rem;width:40%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:1.5rem;width:70%;margin-bottom:0.5rem;"></div><div class="skeleton" style="height:2rem;width:30%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:4rem;"></div></div>
+    </div>
+  </main>
+
+  <!-- Dynamic Footer -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+  <script>
+    async function loadPromotions() {
+      try {
+        const r = await fetch("http://127.0.0.1:8000/campaigns?status=Active");
+        if (!r.ok) throw new Error("Server error");
+        const campaigns = await r.json();
+        renderCampaigns(campaigns);
+      } catch (e) {
+        console.error("[Promotions]", e);
+        renderCampaigns([]);
+      }
+    }
+
+    function renderCampaigns(campaigns) {
+      const grid = document.getElementById("campaigns-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      if (!campaigns || campaigns.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="megaphone" style="width:3rem;height:3rem;color:var(--text-muted);margin-bottom:1rem;"></i>
+            <h3 style="font-size:1.25rem;font-weight:600;color:white;margin-bottom:0.5rem;">No Active Campaigns</h3>
+            <p style="color:var(--text-secondary);">Check back soon for exclusive offers and promotions!</p>
+          </div>`;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      campaigns.forEach(c => {
+        // Use AI-generated content if available, fall back to raw data
+        const displayTitle  = c.ai_title   || c.campaign_name;
+        const displayOffer  = c.offer_details || "Special Offer";
+        const displayBody   = (() => {
+          if (c.ai_body && typeof c.ai_body === "string" && c.ai_body.trim()) return c.ai_body;
+          if (c.ai_body && typeof c.ai_body === "object") return Object.values(c.ai_body).join(" ");
+          return `Exclusive ${c.campaign_type || "promotional"} offer on ${c.product_name || c.campaign_name}. Don't miss this limited-time deal!`;
+        })();
+        const displayCTA    = c.ai_cta || "Claim Offer";
+        const displayType   = c.campaign_type || "Promotion";
+
+        const endDateStr = c.end_date
+          ? `<div class="camp-meta-item"><i data-lucide="clock" style="width:0.85rem;height:0.85rem;"></i><span>Ends: ${new Date(c.end_date).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}</span></div>`
+          : "";
+        const audienceStr = c.target_audience
+          ? `<div class="camp-meta-item"><i data-lucide="users" style="width:0.85rem;height:0.85rem;"></i><span>For: ${c.target_audience}</span></div>`
+          : "";
+
+        // Show first ~150 chars of body + ellipsis
+        const shortBody = displayBody.length > 200 ? displayBody.slice(0, 200) + "..." : displayBody;
+
+        grid.innerHTML += `
+        <div class="campaign-card">
+          <span class="camp-type-badge">
+            <i data-lucide="tag" style="width:0.7rem;height:0.7rem;"></i>${displayType}
+          </span>
+          <h2 class="camp-title">${displayTitle}</h2>
+          <div class="camp-offer">${c.product_name ? c.product_name + " — " : ""}${displayOffer}</div>
+          <p class="camp-body">${shortBody}</p>
+          ${(endDateStr || audienceStr) ? `<div class="camp-meta">${audienceStr}${endDateStr}</div>` : ""}
+          <button class="camp-cta-btn" onclick="handleCTAClick('${(displayCTA).replace(/'/g,"\\'")}','${(c.campaign_name||'').replace(/'/g,"\\'")}')">
+            <i data-lucide="arrow-right" style="width:0.9rem;height:0.9rem;"></i>${displayCTA}
+          </button>
+        </div>`;
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function handleCTAClick(cta, campaignName) {
+      // Show a styled confirmation/action modal
+      const msg = `You're about to claim the offer: "${campaignName}". You'll be redirected to complete your purchase.`;
+      if (confirm(msg)) {
+        // In production, redirect to product page or checkout
+        alert(`✅ Offer noted! Our team will reach out to help you claim "${campaignName}".`);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadPromotions();
+    });
+  </script>
+</body>
+</html>

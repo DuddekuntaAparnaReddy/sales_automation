@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surveys & Feedback - Salesbot</title>
+  <meta name="description" content="Share your feedback or participate in our market research and customer surveys to help us improve.">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .survey-page { margin-top: 6.5rem; margin-bottom: 4rem; position: relative; z-index: 1; }
+    
+    /* Hero Banner */
+    .survey-hero {
+      background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(99,102,241,0.12));
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 1.5rem;
+      padding: 3rem 2.5rem;
+      text-align: center;
+      margin-bottom: 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .survey-hero h1 {
+      font-size: 2.5rem; font-weight: 800; margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .survey-hero p { color: var(--text-secondary); font-size: 1.1rem; max-width: 580px; margin: 0 auto; }
+
+    /* Tab switcher */
+    .tab-bar {
+      display: flex; gap: 1rem; margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;
+    }
+    .tab-btn {
+      font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem;
+      padding: 0.6rem 1.25rem; border-radius: 0.5rem; cursor: pointer;
+      color: var(--text-secondary); transition: all 0.25s ease;
+      background: transparent;
+    }
+    .tab-btn.active {
+      color: white; background: rgba(139,92,246,0.1);
+      border-bottom: 2px solid var(--primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+    }
+
+    /* Survey Cards Grid */
+    .surveys-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .survey-card {
+      background: var(--surface-primary); border: 1px solid var(--border-color);
+      border-radius: 1.25rem; padding: 1.75rem; display: flex; flex-direction: column;
+      gap: 0.85rem; transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative; overflow: hidden;
+    }
+    .survey-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--gradient-primary);
+    }
+    .survey-card:hover {
+      transform: translateY(-4px); box-shadow: 0 12px 30px rgba(139,92,246,0.15);
+      border-color: var(--border-focus);
+    }
+    .survey-cat-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem;
+      font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 2rem;
+      background: rgba(139,92,246,0.12); color: var(--primary);
+      border: 1px solid rgba(139,92,246,0.2); width: fit-content;
+      text-transform: uppercase;
+    }
+    .survey-card-title { font-size: 1.25rem; font-weight: 700; color: white; margin: 0; }
+    .survey-card-desc  { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; flex: 1; }
+    .survey-card-meta  { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); }
+    .survey-card-btn   {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.75rem; border-radius: 0.75rem; background: var(--gradient-primary);
+      color: white; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(139,92,246,0.2); transition: all 0.25s ease;
+    }
+    .survey-card-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(139,92,246,0.35); }
+
+    /* Questionnaire Overlay */
+    .questionnaire-container {
+      background: var(--surface-primary); border: 1px solid var(--border-color);
+      border-radius: 1.5rem; padding: 2.5rem; max-width: 650px; margin: 0 auto;
+      box-shadow: var(--card-shadow); display: none;
+    }
+    .question-box {
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .question-label { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.75rem; color: white; display: block; }
+    
+    /* Stars rating styling */
+    .stars-row { display: flex; gap: 0.5rem; justify-content: flex-start; margin-top: 0.25rem; }
+    .survey-star { font-size: 2rem; cursor: pointer; color: #475569; transition: color 0.2s ease; }
+    .survey-star.active { color: #fbbf24; }
+
+    /* Yes/No radio styling */
+    .choice-row { display: flex; gap: 1.5rem; margin-top: 0.5rem; }
+    .choice-item { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; }
+    .choice-item input { width: 1.15rem; height: 1.15rem; cursor: pointer; accent-color: var(--primary); }
+
+    /* General site feedback view */
+    .general-card {
+      background: var(--surface-primary); border: 1px solid var(--border-color);
+      border-radius: 1.5rem; padding: 2.5rem; max-width: 550px; margin: 0 auto;
+      box-shadow: var(--card-shadow); text-align: center;
+    }
+    .general-star { font-size: 2.75rem; cursor: pointer; color: #475569; transition: color 0.2s ease; }
+    .general-star.active { color: #fbbf24; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; grid-column: 1/-1;
+      background: var(--bg-secondary); border: 1px dashed var(--border-color);
+      border-radius: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <main class="survey-page container">
+    <!-- Glowing background elements -->
+    <div class="glow-blur" style="top: 15%; left: 10%;"></div>
+    <div class="glow-blur" style="bottom: 15%; right: 10%; background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, rgba(99,102,241,0) 70%);"></div>
+
+    <!-- Hero Header -->
+    <div class="survey-hero">
+      <h1>⭐ Survey &amp; Feedback Bot</h1>
+      <p>Your opinions and insights help us shape the future of our product offerings and improve customer experiences.</p>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-surveys" onclick="switchView('surveys')">📋 Active Surveys</button>
+      <button class="tab-btn" id="tab-btn-general" onclick="switchView('general')">💬 Site Feedback Rating</button>
+    </div>
+
+    <!-- Surveys Tab View -->
+    <div id="view-surveys" style="display:block;">
+      <!-- Active Surveys Grid -->
+      <div class="surveys-grid" id="surveys-list-container">
+        <!-- Loader Skeletons -->
+        <div class="survey-card"><div class="skeleton" style="height:1rem;width:40%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:1.5rem;width:70%;margin-bottom:0.5rem;"></div><div class="skeleton" style="height:4rem;margin-bottom:1rem;"></div><div class="skeleton" style="height:2.5rem;"></div></div>
+        <div class="survey-card"><div class="skeleton" style="height:1rem;width:40%;margin-bottom:0.75rem;"></div><div class="skeleton" style="height:1.5rem;width:70%;margin-bottom:0.5rem;"></div><div class="skeleton" style="height:4rem;margin-bottom:1rem;"></div><div class="skeleton" style="height:2.5rem;"></div></div>
+      </div>
+
+      <!-- Questionnaire Dynamic Sheet -->
+      <div class="questionnaire-container" id="survey-sheet">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:0.75rem;">
+          <h2 id="sheet-title" style="margin:0;font-size:1.35rem;">Q4 Customer Preferences Survey</h2>
+          <button class="btn-action" style="background:transparent;border:1px solid var(--border-color);color:var(--text-secondary);padding:0.4rem 0.8rem;font-size:0.8rem;" onclick="closeQuestionnaire()">Back to list</button>
+        </div>
+        <p id="sheet-desc" style="color:var(--text-secondary);font-size:0.95rem;line-height:1.6;margin-bottom:2rem;"></p>
+        
+        <form id="questionnaire-form" onsubmit="submitQuestions(event)">
+          <div id="questions-box-list">
+            <!-- Questions rendered here dynamically -->
+          </div>
+          
+          <button type="submit" class="survey-card-btn" style="margin-top:1.5rem;">
+            <i data-lucide="send" style="width:1rem;height:1rem;"></i> Submit Survey Responses
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- General Feedback Tab View -->
+    <div id="view-general" style="display:none;">
+      <div class="general-card">
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1rem;color:white;">Overall Platform Experience</h2>
+        <p style="color:var(--text-secondary);font-size:0.95rem;margin-bottom:1.5rem;">Rate your satisfaction level with our automation services.</p>
+        
+        <!-- Stars Rating -->
+        <div style="display:flex;justify-content:center;gap:0.75rem;margin-bottom:2rem;">
+          <span class="general-star" onclick="rateGeneral(1)">★</span>
+          <span class="general-star" onclick="rateGeneral(2)">★</span>
+          <span class="general-star" onclick="rateGeneral(3)">★</span>
+          <span class="general-star" onclick="rateGeneral(4)">★</span>
+          <span class="general-star" onclick="rateGeneral(5)">★</span>
+        </div>
+
+        <div class="form-group" style="text-align:left;">
+          <label style="margin-bottom:0.5rem;display:block;font-weight:600;">Share your suggestions &amp; comments</label>
+          <textarea id="general_comments" class="form-control" rows="4" style="resize:none;" placeholder="Write comments or suggestions here..."></textarea>
+        </div>
+
+        <button class="survey-card-btn" onclick="submitGeneralFeedback()" style="margin-top:1.5rem;">
+          <i data-lucide="message-square" style="width:1rem;height:1rem;"></i> Submit General Feedback
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Thank You Success Popups -->
+  <div id="survey-success-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center; text-align:center;">
+    <div style="background:var(--surface-primary); border:1px solid var(--border-color); border-radius:1.25rem; width:100%; max-width:400px; padding:2.5rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+      <div style="width:4.5rem;height:4.5rem;border-radius:50%;background:rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem auto;">
+        <i data-lucide="check-circle" style="color:var(--success);width:2.25rem;height:2.25rem;"></i>
+      </div>
+      <h3 style="font-size:1.35rem;font-weight:700;color:white;margin-bottom:0.5rem;">🎉 Thank You!</h3>
+      <p style="color:var(--text-secondary);font-size:0.95rem;margin-bottom:1.5rem;">Your survey response has been recorded successfully. A confirmation email has been logged to your user account.</p>
+      <button class="survey-card-btn" onclick="dismissSuccessModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+  <script>
+    // Tab switching
+    function switchView(view) {
+      document.getElementById("view-surveys").style.display = view === "surveys" ? "block" : "none";
+      document.getElementById("view-general").style.display = view === "general" ? "block" : "none";
+      
+      document.getElementById("tab-btn-surveys").classList.toggle("active", view === "surveys");
+      document.getElementById("tab-btn-general").classList.toggle("active", view === "general");
+      
+      if (view === "surveys") {
+        closeQuestionnaire();
+        loadActiveSurveys();
+      }
+    }
+
+    // --- GENERAL FEEDBACK LOGIC ---
+    let generalRating = 0;
+    function rateGeneral(val) {
+      generalRating = val;
+      document.querySelectorAll(".general-star").forEach((star, idx) => {
+        star.classList.toggle("active", idx < val);
+      });
+    }
+
+    async function submitGeneralFeedback() {
+      const comments = document.getElementById("general_comments").value.trim();
+      if (generalRating === 0) {
+        alert("Please select a rating star first.");
+        return;
+      }
+
+      try {
+        const r = await fetch("http://127.0.0.1:8000/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rating: generalRating, comments })
+        });
+        const d = await r.json();
+        alert(d.message || "Feedback submitted.");
+        
+        // Reset general form
+        rateGeneral(0);
+        document.getElementById("general_comments").value = "";
+      } catch (e) { alert("Error connecting to server."); }
+    }
+
+    // --- ACTIVE SURVEYS LIST & SHEETS ---
+    async function loadActiveSurveys() {
+      const container = document.getElementById("surveys-list-container");
+      if (!container) return;
+
+      try {
+        const r = await fetch("http://127.0.0.1:8000/api/surveys?status=Active");
+        const surveys = await r.json();
+        container.innerHTML = "";
+
+        if (!surveys || surveys.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i data-lucide="help-circle" style="width:3rem;height:3rem;color:var(--text-muted);margin-bottom:1rem;"></i>
+              <h3 style="font-size:1.25rem;font-weight:600;color:white;margin-bottom:0.5rem;">No Active Surveys</h3>
+              <p style="color:var(--text-secondary);">There are no pending market research surveys available right now.</p>
+            </div>`;
+          if (window.lucide) lucide.createIcons();
+          return;
+        }
+
+        surveys.forEach(s => {
+          container.innerHTML += `
+            <div class="survey-card">
+              <span class="survey-cat-badge">
+                <i data-lucide="tag" style="width:0.7rem;height:0.7rem;"></i>${s.category || 'Feedback'}
+              </span>
+              <h2 class="survey-card-title">${s.title}</h2>
+              <p class="survey-card-desc">${s.description || 'No description provided.'}</p>
+              <div class="survey-card-meta">
+                <i data-lucide="calendar" style="width:0.85rem;height:0.85rem;"></i>
+                <span>Expiry: ${s.expiry_date || 'No Expiry'}</span>
+              </div>
+              <button class="survey-card-btn" onclick="openQuestionnaire(${s.id})">
+                <i data-lucide="edit-3" style="width:0.9rem;height:0.9rem;"></i> Participate in Survey
+              </button>
+            </div>
+          `;
+        });
+
+        if (window.lucide) lucide.createIcons();
+      } catch (e) {
+        container.innerHTML = "<p style='color:red;'>Could not fetch active surveys list.</p>";
+      }
+    }
+
+    // --- Dynamic Questionnaire Form Renders ---
+    let activeSurveyDetails = null;
+    let selectedStarRatings = {}; // maps question ID to selected rating value
+
+    async function openQuestionnaire(surveyId) {
+      document.getElementById("surveys-list-container").style.display = "none";
+      const sheet = document.getElementById("survey-sheet");
+      sheet.style.display = "block";
+
+      const titleEl = document.getElementById("sheet-title");
+      const descEl  = document.getElementById("sheet-desc");
+      const qList   = document.getElementById("questions-box-list");
+
+      titleEl.textContent = "Loading details...";
+      descEl.textContent  = "";
+      qList.innerHTML     = "<p style='color:var(--text-muted);'>Building questionnaire fields...</p>";
+
+      try {
+        const r = await fetch(`http://127.0.0.1:8000/api/surveys/${surveyId}`);
+        const s = await r.json();
+        activeSurveyDetails = s;
+
+        titleEl.textContent = s.title;
+        descEl.textContent  = s.description || "Help us collect valuable opinions by responding to the questions below.";
+
+        qList.innerHTML = "";
+        selectedStarRatings = {};
+
+        s.questions.forEach((q, idx) => {
+          let fieldHtml = "";
+          if (q.question_type === "text") {
+            fieldHtml = `<textarea name="q-${q.id}" class="form-control" rows="3" required placeholder="Type your answer here..."></textarea>`;
+          } else if (q.question_type === "rating") {
+            selectedStarRatings[q.id] = 0;
+            fieldHtml = `
+              <div class="stars-row">
+                <span class="survey-star star-${q.id}" data-val="1" onclick="rateSurveyQuestion(${q.id}, 1)">★</span>
+                <span class="survey-star star-${q.id}" data-val="2" onclick="rateSurveyQuestion(${q.id}, 2)">★</span>
+                <span class="survey-star star-${q.id}" data-val="3" onclick="rateSurveyQuestion(${q.id}, 3)">★</span>
+                <span class="survey-star star-${q.id}" data-val="4" onclick="rateSurveyQuestion(${q.id}, 4)">★</span>
+                <span class="survey-star star-${q.id}" data-val="5" onclick="rateSurveyQuestion(${q.id}, 5)">★</span>
+              </div>
+            `;
+          } else if (q.question_type === "choice") {
+            fieldHtml = `
+              <div class="choice-row">
+                <label class="choice-item">
+                  <input type="radio" name="q-${q.id}" value="Yes" required>
+                  <span>Yes</span>
+                </label>
+                <label class="choice-item">
+                  <input type="radio" name="q-${q.id}" value="No">
+                  <span>No</span>
+                </label>
+                <label class="choice-item">
+                  <input type="radio" name="q-${q.id}" value="Maybe">
+                  <span>Maybe</span>
+                </label>
+              </div>
+            `;
+          }
+
+          qList.innerHTML += `
+            <div class="question-box">
+              <label class="question-label">${idx + 1}. ${q.question_text}</label>
+              ${fieldHtml}
+            </div>
+          `;
+        });
+
+      } catch (e) {
+        titleEl.textContent = "Error";
+        descEl.textContent  = "Could not load survey data.";
+      }
+    }
+
+    function rateSurveyQuestion(questionId, rating) {
+      selectedStarRatings[questionId] = rating;
+      document.querySelectorAll(`.star-${questionId}`).forEach(star => {
+        const val = parseInt(star.getAttribute("data-val"));
+        star.classList.toggle("active", val <= rating);
+      });
+    }
+
+    function closeQuestionnaire() {
+      document.getElementById("survey-sheet").style.display = "none";
+      document.getElementById("surveys-list-container").style.display = "grid";
+      activeSurveyDetails = null;
+    }
+
+    // --- SUBMIT USER RESPONSES ---
+    async function submitQuestions(e) {
+      e.preventDefault();
+      if (!activeSurveyDetails) return;
+
+      const response_data = {};
+      let validationOk = true;
+
+      // Extract answers dynamically
+      activeSurveyDetails.questions.forEach(q => {
+        if (q.question_type === "text") {
+          const val = document.querySelector(`[name="q-${q.id}"]`)?.value?.trim();
+          response_data[q.question_text] = val || "";
+        } else if (q.question_type === "choice") {
+          const checkedEl = document.querySelector(`[name="q-${q.id}"]:checked`);
+          response_data[q.question_text] = checkedEl ? checkedEl.value : "N/A";
+        } else if (q.question_type === "rating") {
+          const rating = selectedStarRatings[q.id] || 0;
+          if (rating === 0) {
+            alert(`Please provide a star rating for question: "${q.question_text}"`);
+            validationOk = false;
+          }
+          response_data[q.question_text] = `${rating} Stars`;
+        }
+      });
+
+      if (!validationOk) return;
+
+      const session = JSON.parse(localStorage.getItem("session") || "{}");
+      const user_id = session.user_id || null;
+
+      try {
+        const r = await fetch(`http://127.0.0.1:8000/api/surveys/${activeSurveyDetails.id}/responses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id, response_data })
+        });
+        const d = await r.json();
+
+        if (r.ok) {
+          showSurveySuccessModal();
+        } else {
+          alert(d.error || "Submission failed.");
+        }
+      } catch (err) { alert("Backend Server Connection Error."); }
+    }
+
+    function showSurveySuccessModal() {
+      const modal = document.getElementById("survey-success-modal");
+      if (modal) {
+        modal.style.display = "flex";
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    function dismissSuccessModal() {
+      const modal = document.getElementById("survey-success-modal");
+      if (modal) modal.style.display = "none";
+      closeQuestionnaire();
+      loadActiveSurveys();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadActiveSurveys();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --surface-dark: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #22c55e;
+      --warning: #eab308;
+      --danger: #ef4444;
+    }
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: sans-serif;
+    }
+    .content-section {
+      padding: 1.5rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+    .data-table th, .data-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .data-table th {
+      background-color: #111827;
+      color: var(--text-muted);
+    }
+    .badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-warning { background: rgba(234, 179, 8, 0.2); color: var(--warning); }
+    .badge-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      background: #111827;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      color: white;
+      margin-top: 0.5rem;
+    }
+    .btn-action {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="dark" style="overflow-x: hidden;">
+
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <div class="admin-container" style="display: flex;">
+    
+    <aside class="admin-sidebar" id="admin-sidebar" style="width: 260px; min-height: 100vh; border-right: 1px solid var(--border-color);">
+      <div class="admin-sidebar-header" style="padding: 1.5rem;">
+        <div class="logo" style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.25rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+          Salesbot Admin
+        </div>
+      </div>
+
+      <nav class="admin-sidebar-menu" style="padding: 0 1rem;">
+        <div class="admin-menu-item active" onclick="showSection('dashboard',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="layout-dashboard"></i> <span>Dashboard</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('lead',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="users"></i> <span>Lead Management</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('campaign',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="megaphone"></i> <span>Campaign Management</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('event-mgmt',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="calendar"></i> <span>Event Management</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('reengagement',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="refresh-cw"></i> <span>Customer Re-engagement</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('feedback-mgmt',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="message-square"></i> <span>Feedback & Surveys</span>
+        </div>
+
+        <div class="admin-menu-item" onclick="showSection('conversations',this)" style="padding: 0.75rem; cursor: pointer; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="message-square"></i> <span>Conversation Logs</span>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 1rem 0;">
+
+        <div class="admin-menu-item" onclick="handleLogout()" style="color: var(--danger); padding: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;">
+          <i data-lucide="log-out" style="color: var(--danger);"></i> <span>Logout</span>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="admin-main" style="flex: 1; display: flex; flex-direction: column;">
+      <header class="admin-header" style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="mobile-sidebar-trigger" id="mobile-sidebar-trigger" style="display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; border: 1px solid var(--border-color); background-color: var(--surface-dark);">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="admin-header-title" id="main-header-title" style="font-size: 1.5rem; font-weight: 600;">Dashboard Insights</h1>
+        </div>
+
+        <div class="admin-header-actions" style="display: flex; align-items: center; gap: 1rem;">
+          <a href="index.html" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem; border: 1px solid var(--border-color); color: white; text-decoration: none; border-radius: 0.375rem; display: flex; align-items: center; gap: 0.25rem;">
+            <i data-lucide="external-link" style="width:14px;"></i> View Website
+          </a>
+
+          <button class="theme-toggle" aria-label="Toggle Theme" style="width: 2.25rem; height: 2.25rem; background: none; border: 1px solid var(--border-color); border-radius: 0.5rem; color: white;">
+            <i data-lucide="moon" class="moon-icon" style="width: 1.1rem; height: 1.1rem;"></i>
+          </button>
+
+          <div class="admin-profile" onclick="showProfileModal()" style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+            <div class="admin-profile-avatar" id="admin-profile-avatar" style="width: 2.25rem; height: 2.25rem; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">AD</div>
+            <div class="admin-profile-info" style="font-size: 0.85rem;">
+              <div class="admin-profile-name" id="admin-profile-name">System Admin</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-content" style="padding: 1rem;">
+        
+        <div id="dashboard-section" class="content-section">
+          <div class="grid-3">
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Total Leads</p><div class="stat-value" id="total-leads">0</div></div>
+              <i data-lucide="users" style="color: var(--primary)"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Active Campaigns</p><div class="stat-value" id="total-campaigns">0</div></div>
+              <i data-lucide="megaphone" style="color: var(--success)"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Total Users</p><div class="stat-value" id="total-users">0</div></div>
+              <i data-lucide="trending-up" style="color: var(--warning)"></i>
+            </div>
+          </div>
+          
+          <!-- Category Specific Leads Row -->
+          <div class="grid-3" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+            <div class="stat-card" style="border-left: 4px solid var(--danger);">
+              <div><p style="color: var(--text-muted); margin:0;">Hot Leads</p><div class="stat-value" id="hot-leads" style="color: var(--danger);">0</div></div>
+              <i data-lucide="flame" style="color: var(--danger)"></i>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid var(--warning);">
+              <div><p style="color: var(--text-muted); margin:0;">Warm Leads</p><div class="stat-value" id="warm-leads" style="color: var(--warning);">0</div></div>
+              <i data-lucide="sparkles" style="color: var(--warning)"></i>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid var(--primary);">
+              <div><p style="color: var(--text-muted); margin:0;">Cold Leads</p><div class="stat-value" id="cold-leads" style="color: var(--primary);">0</div></div>
+              <i data-lucide="snowflake" style="color: var(--primary)"></i>
+            </div>
+          </div>
+
+          <h3>Recent System Activity</h3>
+          <table class="data-table">
+            <thead><tr><th>Activity</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>New lead registered via Webhook</td><td><span class="badge badge-success">Completed</span></td><td>2 mins ago</td></tr>
+              <tr><td>Campaign "Summer Sale" Triggered</td><td><span class="badge badge-success">Active</span></td><td>1 hour ago</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="lead-section" class="content-section" style="display:none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h3>Lead Pipeline</h3>
+            <button class="btn-action">+ Add New Lead</button>
+          </div>
+
+          <!-- Filters Toolbar -->
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; background: var(--surface-secondary); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color);">
+            <div style="flex: 1; min-width: 200px; display: flex; align-items: center; background: #111827; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 0.75rem;">
+              <i data-lucide="search" style="width: 1rem; height: 1rem; color: var(--text-muted); margin-right: 0.5rem;"></i>
+              <input type="text" id="lead-search" placeholder="Search by name, email, interest..." style="width: 100%; padding: 0.75rem 0; background: transparent; border: none; outline: none; color: white; font-size: 0.9rem;">
+            </div>
+            
+            <div style="width: 180px; display: flex; align-items: center; background: #111827; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 0.75rem;">
+              <i data-lucide="filter" style="width: 1rem; height: 1rem; color: var(--text-muted); margin-right: 0.5rem;"></i>
+              <select id="lead-filter-category" style="width: 100%; padding: 0.75rem 0; background: transparent; border: none; outline: none; color: white; font-size: 0.9rem; cursor: pointer;">
+                <option value="" style="background: var(--surface-primary);">All Categories</option>
+                <option value="Hot" style="background: var(--surface-primary);">Hot Lead</option>
+                <option value="Warm" style="background: var(--surface-primary);">Warm Lead</option>
+                <option value="Cold" style="background: var(--surface-primary);">Cold Lead</option>
+              </select>
+            </div>
+            
+            <div style="width: 180px; display: flex; align-items: center; background: #111827; border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0 0.75rem;">
+              <i data-lucide="arrow-up-down" style="width: 1rem; height: 1rem; color: var(--text-muted); margin-right: 0.5rem;"></i>
+              <select id="lead-sort" style="width: 100%; padding: 0.75rem 0; background: transparent; border: none; outline: none; color: white; font-size: 0.9rem; cursor: pointer;">
+                <option value="date_desc" style="background: var(--surface-primary);">Newest Captured</option>
+                <option value="score_desc" style="background: var(--surface-primary);">Score: High to Low</option>
+                <option value="score_asc" style="background: var(--surface-primary);">Score: Low to High</option>
+                <option value="date_asc" style="background: var(--surface-primary);">Oldest Captured</option>
+              </select>
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Interest</th>
+                <th>Score</th>
+                <th>Category</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="leads-list">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="campaign-section" class="content-section" style="display:none;">
+
+          <!-- Stats Row -->
+          <div class="grid-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.75rem;">
+            <div class="stat-card">
+              <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Total Campaigns</p><div class="stat-value" id="camp-stat-total" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;">0</div></div>
+              <i data-lucide="megaphone" style="color:var(--primary);width:24px;height:24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Active Campaigns</p><div class="stat-value" id="camp-stat-active" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#22c55e;">0</div></div>
+              <i data-lucide="zap" style="color:#22c55e;width:24px;height:24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Completed</p><div class="stat-value" id="camp-stat-completed" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#64748b;">0</div></div>
+              <i data-lucide="check-circle" style="color:#64748b;width:24px;height:24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Emails Sent</p><div class="stat-value" id="camp-stat-emails" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#f59e0b;">0</div></div>
+              <i data-lucide="mail" style="color:#f59e0b;width:24px;height:24px;"></i>
+            </div>
+          </div>
+
+          <!-- Header + Create Button -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <h3 style="margin:0;">Promotional Campaigns</h3>
+            <button class="btn-action" onclick="showCampaignForm()">
+              <i data-lucide="plus" style="width:14px;height:14px;margin-right:4px;"></i>+ Create Campaign
+            </button>
+          </div>
+
+          <!-- Create / Edit Form Panel -->
+          <div id="campaign-form-panel" style="display:none;background:var(--surface-dark);border:1px solid var(--border-color);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;">
+            <h4 id="camp-form-title" style="margin-bottom:1.25rem;font-size:1.1rem;display:flex;align-items:center;gap:0.5rem;">
+              <i data-lucide="sparkles" style="color:var(--primary);width:18px;height:18px;"></i> Create New Campaign
+            </h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div class="form-group">
+                <label>Campaign Name *</label>
+                <input type="text" id="camp_name" class="form-control" placeholder="e.g. Summer Laptop Sale 2025">
+              </div>
+              <div class="form-group">
+                <label>Campaign Type</label>
+                <select id="camp_type" class="form-control">
+                  <option value="Promotional">Promotional</option>
+                  <option value="Discount">Discount</option>
+                  <option value="Festival Offer">Festival Offer</option>
+                  <option value="Seasonal Sale">Seasonal Sale</option>
+                  <option value="New Product Announcement">New Product Announcement</option>
+                  <option value="Special Customer Offer">Special Customer Offer</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Product Name</label>
+                <input type="text" id="camp_product" class="form-control" placeholder="e.g. Gaming Laptop">
+              </div>
+              <div class="form-group">
+                <label>Target Audience</label>
+                <input type="text" id="camp_audience" class="form-control" placeholder="e.g. Students, Professionals, Gamers">
+              </div>
+              <div class="form-group" style="grid-column:1/-1;">
+                <label>Offer / Discount Details</label>
+                <textarea id="camp_offer" class="form-control" rows="2" placeholder="e.g. 20% off on all Gaming Laptops. Use code GAME20."></textarea>
+              </div>
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="camp_start" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" id="camp_end" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Status</label>
+                <select id="camp_status" class="form-control">
+                  <option value="Active">Active</option>
+                  <option value="Paused">Paused</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+              <button id="camp-save-btn" class="btn-action" style="background:var(--gradient-primary);" onclick="saveCampaign()">
+                🚀 Create Campaign &amp; Generate AI Content
+              </button>
+              <button class="btn-action" style="background:transparent;border:1px solid var(--border-color);color:var(--text-secondary);" onclick="showCampaignForm()">
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- AI Preview Panel -->
+          <div id="ai-preview-panel" style="display:none;background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(139,92,246,0.08));border:1px solid rgba(99,102,241,0.25);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <h4 style="margin:0;display:flex;align-items:center;gap:0.5rem;color:var(--primary);">
+                <i data-lucide="sparkles" style="width:18px;height:18px;"></i> AI-Generated Campaign Content
+              </h4>
+              <button onclick="hideCampaignAIPreview()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:1.25rem;">&times;</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+              <div style="background:var(--surface-dark);border-radius:0.75rem;padding:1rem;border:1px solid var(--border-color);">
+                <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.25rem;font-weight:600;text-transform:uppercase;">Campaign Title</p>
+                <p id="ai-prev-title" style="margin:0;font-weight:600;color:white;"></p>
+              </div>
+              <div style="background:var(--surface-dark);border-radius:0.75rem;padding:1rem;border:1px solid var(--border-color);">
+                <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.25rem;font-weight:600;text-transform:uppercase;">Email Subject</p>
+                <p id="ai-prev-subject" style="margin:0;font-weight:600;color:white;"></p>
+              </div>
+            </div>
+            <div style="background:var(--surface-dark);border-radius:0.75rem;padding:1rem;border:1px solid var(--border-color);margin-bottom:1rem;">
+              <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.5rem;font-weight:600;text-transform:uppercase;">Email Body</p>
+              <p id="ai-prev-body" style="margin:0;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;font-size:0.9rem;"></p>
+            </div>
+            <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:0.5rem;padding:0.65rem 1rem;display:inline-block;">
+              <span style="font-weight:700;color:white;font-size:0.9rem;" id="ai-prev-cta">Shop Now</span>
+            </div>
+          </div>
+
+          <!-- Search & Filter -->
+          <div style="display:flex;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;background:var(--surface-secondary);padding:1rem;border-radius:0.75rem;border:1px solid var(--border-color);">
+            <div style="flex:1;min-width:200px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+              <i data-lucide="search" style="width:1rem;height:1rem;color:var(--text-muted);margin-right:0.5rem;"></i>
+              <input type="text" id="camp_search" placeholder="Search campaigns..." oninput="loadCampaigns()"
+                style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;">
+            </div>
+            <div style="width:160px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+              <select id="camp_filter_type" onchange="loadCampaigns()" style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;cursor:pointer;">
+                <option value="">All Types</option>
+                <option value="Promotional">Promotional</option>
+                <option value="Discount">Discount</option>
+                <option value="Festival Offer">Festival Offer</option>
+                <option value="Seasonal Sale">Seasonal Sale</option>
+                <option value="New Product Announcement">New Product Announcement</option>
+              </select>
+            </div>
+            <div style="width:140px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+              <select id="camp_filter_status" onchange="loadCampaigns()" style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;cursor:pointer;">
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Paused">Paused</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campaigns Table -->
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Product</th>
+                <th>Offer Details</th>
+                <th>Target Audience</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="campaigns-table-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading campaigns...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+
+        <div id="reengagement-section" class="content-section" style="display:none;">
+          <!-- Stats row -->
+          <div class="grid-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Total Inactive Users</p><div class="stat-value" id="reengage-stat-inactive" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="users" style="color: var(--danger); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Emails Sent</p><div class="stat-value" id="reengage-stat-sent" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="mail" style="color: var(--primary); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Re-engaged Users</p><div class="stat-value" id="reengage-stat-reengaged" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="user-check" style="color: var(--success); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Conversion Rate</p><div class="stat-value" id="reengage-stat-conversion" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0%</div></div>
+              <i data-lucide="trending-up" style="color: var(--warning); width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+            <!-- Inactive users list -->
+            <div>
+              <h3 style="margin-bottom: 0.5rem;">Inactive Customers (No activity in 30+ days)</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">These users have been automatically identified. You can also trigger re-engagement campaigns manually.</p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Customer Details</th>
+                    <th>Last Active</th>
+                    <th>Previous Interest</th>
+                    <th>Risk Level</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="reengagement-list">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Campaign history / Email logs -->
+            <div>
+              <h3 style="margin-bottom: 0.5rem; margin-top: 1rem;">Campaign History & Email Logs</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Audit log of generated and sent re-engagement campaigns.</p>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date Sent</th>
+                    <th>Customer Name/Email</th>
+                    <th>Campaign Subject</th>
+                    <th>Status</th>
+                    <th>Re-engaged?</th>
+                  </tr>
+                </thead>
+                <tbody id="reengagement-history-list">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div id="event-mgmt-section" class="content-section" style="display:none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+            <h3>Event Management</h3>
+            <button class="btn-action" onclick="showEventForm()">+ Create Event</button>
+          </div>
+
+          <!-- Stats row -->
+          <div class="grid-3" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Total Events</p><div class="stat-value" id="events-stat-total" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="calendar" style="color: var(--primary); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Upcoming Events</p><div class="stat-value" id="events-stat-upcoming" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="clock" style="color: var(--warning); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Completed Events</p><div class="stat-value" id="events-stat-completed" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="check-circle" style="color: var(--success); width: 24px; height: 24px;"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0; font-size: 0.85rem;">Total Registrations</p><div class="stat-value" id="events-stat-registrations" style="font-size: 1.75rem; font-weight: bold; margin-top: 0.5rem;">0</div></div>
+              <i data-lucide="users" style="color: var(--primary); width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+
+          <div id="event-form" style="display:none; margin-top:20px; margin-bottom:20px; background:#1e293b; padding:20px; border-radius:10px; width: 100%;">
+            <div class="form-group">
+              <label>Event Name</label>
+              <input type="text" id="event_name" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Event Type</label>
+              <select id="event_type" class="form-control">
+                <option value="Product Launch">Product Launch</option>
+                <option value="Webinar">Webinar</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Promotional">Promotional</option>
+                <option value="Sales Event">Sales Event</option>
+                <option value="Training">Training</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Event Date</label>
+              <input type="date" id="event_date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Event Time</label>
+              <input type="text" id="event_time" class="form-control" placeholder="e.g. 10:00 AM">
+            </div>
+            <div class="form-group">
+              <label>Venue / Meeting Link</label>
+              <input type="text" id="location" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Registration Deadline</label>
+              <input type="date" id="registration_deadline" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Event Description</label>
+              <textarea id="event_description" class="form-control" rows="3" placeholder="Enter professional event details..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Invitation Status</label>
+              <select id="invitation_status" class="form-control">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <button class="btn-action" onclick="saveEvent()">Save Event</button>
+          </div>
+
+          <!-- Search & Filter Controls -->
+          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
+            <input type="text" id="event_search" placeholder="Search events..." class="form-control" style="max-width: 250px; margin-top:0;" oninput="loadEventsMgmt()">
+            <select id="event_filter_type" class="form-control" style="max-width: 200px; margin-top:0;" onchange="loadEventsMgmt()">
+              <option value="">All Types</option>
+              <option value="Product Launch">Product Launch</option>
+              <option value="Webinar">Webinar</option>
+              <option value="Workshop">Workshop</option>
+              <option value="Promotional">Promotional</option>
+              <option value="Sales Event">Sales Event</option>
+              <option value="Training">Training</option>
+            </select>
+            <select id="event_filter_status" class="form-control" style="max-width: 150px; margin-top:0;" onchange="loadEventsMgmt()">
+              <option value="">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Event Name</th>
+                <th>Type</th>
+                <th>Date & Time</th>
+                <th>Location / Link</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="events-mgmt-list">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="feedback-mgmt-section" class="content-section" style="display:none;">
+          
+          <!-- Subtab Navigation -->
+          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border-color);padding-bottom:0.5rem;">
+            <button class="survey-tab-btn active" onclick="showSurveySubTab('list')" style="font-weight:600;padding:0.5rem 1rem;cursor:pointer;color:white;border-bottom:2px solid var(--primary);">📋 Surveys Management</button>
+            <button class="survey-tab-btn" onclick="showSurveySubTab('feedback')" style="font-weight:600;padding:0.5rem 1rem;cursor:pointer;color:var(--text-secondary);">⭐ General Rating Feedback</button>
+          </div>
+
+          <!-- Surveys Subtab -->
+          <div id="survey-tab-list" class="survey-tab-content">
+            <!-- Stats row -->
+            <div class="grid-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:1.75rem;">
+              <div class="stat-card">
+                <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Total Surveys</p><div class="stat-value" id="survey-stat-total" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;">0</div></div>
+                <i data-lucide="help-circle" style="color:var(--primary);width:24px;height:24px;"></i>
+              </div>
+              <div class="stat-card">
+                <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Active Surveys</p><div class="stat-value" id="survey-stat-active" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#22c55e;">0</div></div>
+                <i data-lucide="zap" style="color:#22c55e;width:24px;height:24px;"></i>
+              </div>
+              <div class="stat-card">
+                <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Total Submissions</p><div class="stat-value" id="survey-stat-responses" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#f59e0b;">0</div></div>
+                <i data-lucide="database" style="color:#f59e0b;width:24px;height:24px;"></i>
+              </div>
+              <div class="stat-card">
+                <div><p style="color:var(--text-muted);margin:0;font-size:0.85rem;">Response Rate</p><div class="stat-value" id="survey-stat-rate" style="font-size:1.75rem;font-weight:bold;margin-top:0.5rem;color:#6366f1;">0%</div></div>
+                <i data-lucide="bar-chart" style="color:#6366f1;width:24px;height:24px;"></i>
+              </div>
+            </div>
+
+            <!-- Header + Create Button -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <h3 style="margin:0;">Interactive Surveys</h3>
+              <button class="btn-action" onclick="showSurveyForm()">
+                <i data-lucide="plus" style="width:14px;height:14px;margin-right:4px;"></i>+ Create Survey
+              </button>
+            </div>
+
+            <!-- Survey Form Panel -->
+            <div id="survey-form-panel" style="display:none;background:var(--surface-dark);border:1px solid var(--border-color);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;">
+              <h4 id="survey-form-title" style="margin-bottom:1.25rem;font-size:1.1rem;display:flex;align-items:center;gap:0.5rem;">
+                <i data-lucide="sparkles" style="color:var(--primary);width:18px;height:18px;"></i> Create New Survey
+              </h4>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+                <div class="form-group">
+                  <label>Survey Title *</label>
+                  <input type="text" id="survey_title" class="form-control" placeholder="e.g. Q4 Customer Preferences Survey">
+                </div>
+                <div class="form-group">
+                  <label>Category</label>
+                  <select id="survey_category" class="form-control">
+                    <option value="Product Feedback">Product Feedback</option>
+                    <option value="Customer Satisfaction">Customer Satisfaction</option>
+                    <option value="Market Research">Market Research</option>
+                    <option value="Event Feedback">Event Feedback</option>
+                    <option value="Service Quality">Service Quality</option>
+                  </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label>Survey Description</label>
+                  <textarea id="survey_description" class="form-control" rows="2" placeholder="Describe the purpose of this survey..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Expiry Date</label>
+                  <input type="date" id="survey_expiry" class="form-control">
+                </div>
+              </div>
+
+              <!-- Question Builder Block -->
+              <h5 style="font-size:0.95rem;font-weight:600;margin-bottom:0.75rem;color:white;display:flex;justify-content:space-between;align-items:center;">
+                <span>Survey Questions</span>
+                <button type="button" class="btn-action" style="padding:4px 10px;font-size:12px;background:var(--primary);" onclick="addQuestionField()">+ Add Question</button>
+              </h5>
+              <div id="questions-builder-container" style="margin-bottom:1.5rem;">
+                <!-- Dynamic inputs will go here -->
+              </div>
+
+              <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+                <button id="survey-save-btn" class="btn-action" style="background:var(--gradient-primary);" onclick="saveSurvey()">
+                  🚀 Create Survey
+                </button>
+                <button class="btn-action" style="background:transparent;border:1px solid var(--border-color);color:var(--text-secondary);" onclick="showSurveyForm()">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Search & Filters -->
+            <div style="display:flex;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;background:var(--surface-secondary);padding:1rem;border-radius:0.75rem;border:1px solid var(--border-color);">
+              <div style="flex:1;min-width:200px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+                <i data-lucide="search" style="width:1rem;height:1rem;color:var(--text-muted);margin-right:0.5rem;"></i>
+                <input type="text" id="survey_search" placeholder="Search surveys..." oninput="loadSurveys()"
+                  style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;">
+              </div>
+              <div style="width:180px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+                <select id="survey_filter_category" onchange="loadSurveys()" style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;cursor:pointer;">
+                  <option value="">All Categories</option>
+                  <option value="Product Feedback">Product Feedback</option>
+                  <option value="Customer Satisfaction">Customer Satisfaction</option>
+                  <option value="Market Research">Market Research</option>
+                  <option value="Event Feedback">Event Feedback</option>
+                  <option value="Service Quality">Service Quality</option>
+                </select>
+              </div>
+              <div style="width:140px;display:flex;align-items:center;background:#111827;border:1px solid var(--border-color);border-radius:0.5rem;padding:0 0.75rem;">
+                <select id="survey_filter_status" onchange="loadSurveys()" style="width:100%;padding:0.75rem 0;background:transparent;border:none;outline:none;color:white;font-size:0.9rem;cursor:pointer;">
+                  <option value="">All Statuses</option>
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Surveys List Table -->
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Survey Title</th>
+                  <th>Category</th>
+                  <th>Expiry Date</th>
+                  <th>Status</th>
+                  <th>Submissions</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="surveys-table-body">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Loading surveys...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- General Ratings Tab -->
+          <div id="survey-tab-feedback" class="survey-tab-content" style="display:none;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rating</th>
+                  <th>Comments</th>
+                  <th>Date Submitted</th>
+                </tr>
+              </thead>
+              <tbody id="feedback-mgmt-list">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+
+
+        <div id="conversations-section" class="content-section" style="display:none;">
+          <!-- Stats row -->
+          <div class="grid-3" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Total Exchanges</p><div class="stat-value" id="conv-stat-total">0</div></div>
+              <i data-lucide="message-square" style="color: var(--primary)"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Unique Active Users</p><div class="stat-value" id="conv-stat-users">0</div></div>
+              <i data-lucide="user-check" style="color: var(--success)"></i>
+            </div>
+            <div class="stat-card">
+              <div><p style="color: var(--text-muted); margin:0;">Top Inquiry Focus</p><div class="stat-value" id="conv-stat-faq" style="font-size: 1.15rem; margin-top: 0.75rem;">N/A</div></div>
+              <i data-lucide="help-circle" style="color: var(--warning)"></i>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; flex-wrap: wrap;">
+            <!-- Table area -->
+            <div>
+              <h3>Auditable Conversation Logs</h3>
+              <table class="data-table" style="margin-top: 1rem;">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>User Query</th>
+                    <th>Salesbot Reply</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="conversations-list">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- FAQs sidebar list -->
+            <div style="background: var(--surface-dark); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1.25rem; height: fit-content;">
+              <h4 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.35rem; color: white;">
+                <i data-lucide="trending-up" style="color: var(--primary); width: 1.1rem; height: 1.1rem;"></i> Top Inquiry Topics
+              </h4>
+              <div id="conv-faq-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Detailed Customer Conversation Thread Modal -->
+  <div id="conversation-thread-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:1.25rem; width:100%; max-width:650px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; height:80vh;">
+      <button onclick="closeConversationThreadModal()" style="position:absolute; top:1.25rem; right:1.25rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted); display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="x" style="width:1.5rem; height:1.5rem;"></i>
+      </button>
+      
+      <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem; color: white; font-family: var(--font-heading);">
+        <i data-lucide="message-square" style="color:var(--primary);"></i> Customer Conversation History
+      </h3>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" id="thread-modal-user-info">
+        Customer: N/A
+      </div>
+      
+      <div style="flex:1; overflow-y:auto; padding:1.25rem; background:#111827; border-radius:0.75rem; border:1px solid var(--border-color); display:flex; flex-direction:column; gap:1.25rem;" id="thread-chat-box">
+        <!-- Message bubbles -->
+      </div>
+      
+      <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+        <button class="btn-action" onclick="closeConversationThreadModal()">Close View</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Lead Modal Dialog -->
+  <div id="lead-details-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:1.25rem; width:100%; max-width:600px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative;">
+      <button onclick="closeLeadDetailsModal()" style="position:absolute; top:1.25rem; right:1.25rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted); display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="x" style="width:1.5rem; height:1.5rem;"></i>
+      </button>
+      
+      <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem; color: white; font-family: var(--font-heading);">
+        <i data-lucide="user-check" style="color:var(--primary);"></i> Lead Profile Details
+      </h3>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; text-align:left; color: white;" id="lead-modal-content">
+        <!-- Dynamic content -->
+      </div>
+      
+      <div style="margin-top:2rem; display:flex; justify-content:flex-end;">
+        <button class="btn-action" onclick="closeLeadDetailsModal()">Close Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign Delete Confirmation Modal -->
+  <div id="camp-delete-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center;">
+    <div style="background:#1e293b; border:1px solid #334155; border-radius:1.25rem; width:100%; max-width:420px; padding:2.5rem; box-shadow:0 10px 40px rgba(0,0,0,0.6); text-align:center;">
+      <div style="width:4rem;height:4rem;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem auto;">
+        <i data-lucide="trash-2" style="color:#ef4444;width:2rem;height:2rem;"></i>
+      </div>
+      <h3 style="font-size:1.3rem;font-weight:700;color:white;margin-bottom:0.5rem;">Delete Campaign?</h3>
+      <p id="camp-delete-msg" style="color:#94a3b8;font-size:0.95rem;margin-bottom:1.75rem;">This will permanently delete the campaign.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;">
+        <button style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;padding:0.75rem 2rem;border-radius:0.625rem;font-size:1rem;font-weight:600;cursor:pointer;" onclick="executeDeleteCampaign()">Yes, Delete</button>
+        <button style="background:transparent;color:#94a3b8;border:1px solid #334155;padding:0.75rem 2rem;border-radius:0.625rem;font-size:1rem;font-weight:600;cursor:pointer;" onclick="closeDeleteCampaignModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-confirm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:#1e293b; border:1px solid #334155; border-radius:1.25rem; width:100%; max-width:420px; padding:2.5rem; box-shadow:0 10px 40px rgba(0,0,0,0.6); text-align:center;">
+      <div style="width:4rem; height:4rem; border-radius:50%; background:rgba(239,68,68,0.15); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem auto;">
+        <i data-lucide="trash-2" style="color:#ef4444; width:2rem; height:2rem;"></i>
+      </div>
+      <h3 style="font-size:1.3rem; font-weight:700; color:white; margin-bottom:0.5rem;">Delete Event?</h3>
+      <p id="delete-confirm-msg" style="color:#94a3b8; font-size:0.95rem; margin-bottom:1.75rem;">This will permanently delete the event and all its registrations.</p>
+      <div style="display:flex; gap:1rem; justify-content:center;">
+        <button id="delete-confirm-yes"
+          style="background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; padding:0.75rem 2rem; border-radius:0.625rem; font-size:1rem; font-weight:600; cursor:pointer;"
+          onclick="executeDeleteEvent()">
+          Yes, Delete
+        </button>
+        <button
+          style="background:transparent; color:#94a3b8; border:1px solid #334155; padding:0.75rem 2rem; border-radius:0.625rem; font-size:1rem; font-weight:600; cursor:pointer;"
+          onclick="closeDeleteConfirmModal()">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Survey Responses & AI Insights Modal -->
+  <div id="survey-responses-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:1.25rem; width:100%; max-width:750px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; height:80vh; color:white;">
+      <button onclick="closeSurveyResponsesModal()" style="position:absolute; top:1.25rem; right:1.25rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center;">
+        <i data-lucide="x" style="width:1.5rem; height:1.5rem;"></i>
+      </button>
+      
+      <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; color:white; font-family:var(--font-heading);">
+        <i data-lucide="bar-chart-3" style="color:var(--primary);width:24px;height:24px;"></i> Survey Analysis & Responses
+      </h3>
+
+      <div style="font-size: 0.95rem; color:var(--text-muted); margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;" id="survey-modal-title">
+        Survey Title
+      </div>
+
+      <!-- Modal Tabs -->
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;border-bottom:1px solid var(--border-color);padding-bottom:0.5rem;">
+        <button id="modal-btn-responses" class="modal-tab-btn active" onclick="toggleModalSubTab('responses')" style="font-weight:600;padding:0.4rem 0.8rem;cursor:pointer;color:white;">View Responses</button>
+        <button id="modal-btn-insights" class="modal-tab-btn" onclick="toggleModalSubTab('insights')" style="font-weight:600;padding:0.4rem 0.8rem;cursor:pointer;color:var(--text-secondary);">AI Insights Report</button>
+      </div>
+      
+      <!-- Subtab 1: Individual Submissions -->
+      <div id="modal-tab-responses" class="modal-tab-content" style="flex:1; overflow-y:auto; padding:1rem; background:#111827; border-radius:0.75rem; border:1px solid var(--border-color);">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn-action" style="background:var(--success);padding:4px 10px;font-size:12px;border-radius:4px;" onclick="exportSurveyResponses()">
+            📥 Export Results (JSON)
+          </button>
+        </div>
+        <div id="modal-responses-container">
+          <!-- Dynamically populated response list -->
+        </div>
+      </div>
+
+      <!-- Subtab 2: AI Insights (Llama 3.1) -->
+      <div id="modal-tab-insights" class="modal-tab-content" style="display:none; flex:1; overflow-y:auto; padding:1rem; background:#111827; border-radius:0.75rem; border:1px solid var(--border-color);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h4 style="margin:0;font-size:1.05rem;color:white;display:flex;align-items:center;gap:0.35rem;">
+            <i data-lucide="sparkles" style="color:var(--primary);width:16px;height:16px;"></i> Llama 3.1 Market Insights
+          </h4>
+          <button id="ai-insight-gen-btn" class="btn-action" style="background:var(--primary);padding:4px 12px;font-size:12px;" onclick="triggerAIInsightGen()">
+            ⚡ Trigger AI Analysis
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;margin-bottom:1rem;">
+          <!-- Overall Sentiment Card -->
+          <div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:0.75rem;padding:1.25rem;text-align:center;">
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.5rem;font-weight:600;text-transform:uppercase;">Overall Sentiment</p>
+            <div id="ai-survey-sentiment" style="font-size:1.35rem;font-weight:700;color:var(--success);">Neutral</div>
+          </div>
+          <!-- Trending Customer Interests -->
+          <div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:0.75rem;padding:1.25rem;">
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.5rem;font-weight:600;text-transform:uppercase;">Trending Interests</p>
+            <ul id="ai-survey-interests" style="margin:0;padding-left:0;font-size:0.88rem;list-style:none;line-height:1.6;color:var(--text-secondary);">
+              <!-- Top Interests -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Common Issues -->
+        <div style="background:var(--surface-primary);border:1px solid var(--border-color);border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
+          <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.5rem;font-weight:600;text-transform:uppercase;">Common Paintpoints & Issues</p>
+          <ul id="ai-survey-issues" style="margin:0;padding-left:0;font-size:0.88rem;list-style:none;line-height:1.6;color:var(--text-secondary);">
+            <!-- Issues -->
+          </ul>
+        </div>
+
+        <!-- Strategic Recommendations -->
+        <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:0.75rem;padding:1.25rem;">
+          <p style="font-size:0.75rem;color:var(--primary);margin:0 0 0.5rem;font-weight:600;text-transform:uppercase;">AI Business Recommendations</p>
+          <ul id="ai-survey-recs" style="margin:0;padding-left:0;font-size:0.88rem;list-style:none;line-height:1.6;color:var(--text-secondary);">
+            <!-- Recommendations -->
+          </ul>
+        </div>
+      </div>
+      
+      <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+        <button class="btn-action" onclick="closeSurveyResponsesModal()">Close View</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Survey Delete Confirmation Modal -->
+  <div id="survey-delete-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center;">
+    <div style="background:#1e293b; border:1px solid #334155; border-radius:1.25rem; width:100%; max-width:420px; padding:2.5rem; box-shadow:0 10px 40px rgba(0,0,0,0.6); text-align:center;">
+      <div style="width:4rem;height:4rem;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem auto;">
+        <i data-lucide="trash-2" style="color:#ef4444;width:2rem;height:2rem;"></i>
+      </div>
+      <h3 style="font-size:1.3rem;font-weight:700;color:white;margin-bottom:0.5rem;">Delete Survey?</h3>
+      <p id="survey-delete-msg" style="color:#94a3b8;font-size:0.95rem;margin-bottom:1.75rem;">This will permanently delete the survey and all submissions.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;">
+        <button style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;padding:0.75rem 2rem;border-radius:0.625rem;font-size:1rem;font-weight:600;cursor:pointer;" onclick="executeDeleteSurvey()">Yes, Delete</button>
+        <button style="background:transparent;color:#94a3b8;border:1px solid #334155;padding:0.75rem 2rem;border-radius:0.625rem;font-size:1rem;font-weight:600;cursor:pointer;" onclick="closeDeleteSurveyModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Event Registrations Modal -->
+  <div id="event-registrations-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:1.25rem; width:100%; max-width:700px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; height:80vh;">
+      <button onclick="closeEventRegistrationsModal()" style="position:absolute; top:1.25rem; right:1.25rem; background:transparent; border:none; cursor:pointer; color:var(--text-muted); display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="x" style="width:1.5rem; height:1.5rem;"></i>
+      </button>
+      
+      <h3 style="font-size:1.5rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem; color: white; font-family: var(--font-heading);" id="event-registrations-modal-title">
+        <i data-lucide="users" style="color:var(--primary);"></i> Event Registrations
+      </h3>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" id="event-registrations-modal-subtitle">
+        Event: N/A
+      </div>
+      
+      <div style="flex:1; overflow-y:auto; padding:1rem; background:#111827; border-radius:0.75rem; border:1px solid var(--border-color);">
+        <table class="data-table" style="margin-top:0;">
+          <thead>
+            <tr>
+              <th>Attendee Name</th>
+              <th>Email</th>
+              <th>Registration Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="event-registrations-modal-list">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div style="margin-top:1.5rem; display:flex; justify-content:flex-end;">
+        <button class="btn-action" onclick="closeEventRegistrationsModal()">Close View</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    
+    function showSection(section, element) {
+
+      document.querySelectorAll('.content-section').forEach(sec => {
+        sec.style.display = 'none';
+      });
+   
+      document.getElementById(section + '-section').style.display = 'block';
+
+     
+      document.querySelectorAll('.admin-menu-item').forEach(item => {
+        item.classList.remove('active');
+        item.style.backgroundColor = 'transparent';
+      });
+      element.classList.add('active');
+      element.style.backgroundColor = 'var(--surface-dark)';
+      
+
+      document.getElementById('main-header-title').innerText = element.querySelector('span').innerText;
+    }
+
+    // Lucide Icons 
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+  <script src="js/campaign.js"></script>
+<script src="js/registrations.js"></script>
+<script src="js/surveys-mgmt.js"></script>
+
+<script src="js/leads.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/reengagement.js"></script>
+<script src="js/admin-extra.js"></script>
+<script src="js/conversations-mgmt.js"></script>
+</body>
+</html>

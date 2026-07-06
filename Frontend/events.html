@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Invitations - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .event-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .event-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+    .event-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+      margin-bottom: 1rem;
+      align-self: flex-start;
+    }
+    .event-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: white;
+      font-family: var(--font-heading);
+    }
+    .event-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .event-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .event-description {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      max-width: 450px;
+      width: 90%;
+      padding: 2.5rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .confirm-btn-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    .btn-yes {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 0.625rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-yes:hover { opacity: 0.85; }
+    .btn-no {
+      background: transparent;
+      color: var(--text-secondary, #94a3b8);
+      border: 1px solid var(--border-color, #334155);
+      padding: 0.75rem 2rem;
+      border-radius: 0.625rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-no:hover { background: rgba(255,255,255,0.05); }
+  </style>
+</head>
+<body class="dark">
+
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <!-- Hero Section -->
+  <section class="hero" style="padding: 7rem 0 3rem 0;">
+    <div class="glow-blur" style="top: 10%; left: 20%; background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0) 70%);"></div>
+    <div class="container hero-content" style="text-align: left; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
+      <h1 class="hero-title" style="font-size: 2.75rem; margin-bottom: 0.5rem;">
+        Discover & Register for <span>Events</span>
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px;">
+        Join our exclusive product launches, educational webinars, hands-on workshops, and training sessions to accelerate your business growth.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="section" style="border-top: 1px solid var(--border-color); padding-top: 3rem;">
+    <div class="container" style="max-width: 1200px; margin: auto; padding: 0 1.5rem;">
+      
+      <!-- Events Grid -->
+      <div class="events-grid" id="events-grid-container">
+        <!-- Rendered dynamically -->
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Confirmation Dialog -->
+  <div class="popup-overlay" id="confirm-popup">
+    <div class="popup-content">
+      <div style="width: 4rem; height: 4rem; border-radius: 50%; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <i data-lucide="calendar-check" style="color: #a78bfa; width: 2rem; height: 2rem;"></i>
+      </div>
+      <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: white;">Confirm Registration</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 0;" id="confirm-message">Do you want to register for this event?</p>
+      <div class="confirm-btn-row">
+        <button class="btn-yes" id="confirm-yes-btn" onclick="confirmRegistration()">Yes, Register</button>
+        <button class="btn-no" onclick="closeConfirmPopup()">No, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Popup -->
+  <div class="popup-overlay" id="popup">
+    <div class="popup-content">
+      <div style="width: 4.5rem; height: 4.5rem; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+        <i data-lucide="check-circle" style="color: var(--success); width: 2.5rem; height: 2.5rem;"></i>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: white;">Registration Successful!</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;" id="popup-message">Your seat has been reserved. A confirmation email has been sent.</p>
+      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script src="js/events.js"></script>
+</body>
+</html>

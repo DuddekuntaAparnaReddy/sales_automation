@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile - Salesbot</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f4f4f4;
+    padding:40px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+.profile-card{
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.1);
+    text-align:center;
+}
+
+.profile-image{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:#6c63ff;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:40px;
+    margin:0 auto 20px;
+}
+
+h1{
+    margin-bottom:10px;
+    color:#333;
+}
+
+.profile-info{
+    text-align:left;
+    margin-top:25px;
+}
+
+.info-box{
+    background:#f8f8f8;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+
+.label{
+    font-weight:bold;
+    color:#555;
+    margin-bottom:5px;
+}
+
+.value{
+    color:#222;
+}
+
+.edit-btn{
+    margin-top:20px;
+    background:#6c63ff;
+    color:white;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.edit-btn:hover{
+    background:#564fd1;
+}
+
+.popup{
+    display:none;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 0 20px rgba(0,0,0,0.2);
+    text-align:center;
+}
+
+.popup button{
+    margin-top:15px;
+    padding:10px 20px;
+    border:none;
+    background:#6c63ff;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="profile-card">
+
+        <div class="profile-image">
+    U
+</div>
+
+        <h1>User Profile</h1>
+
+        <div class="profile-info">
+
+            <div class="info-box">
+                <div class="label">Full Name</div>
+                <div class="value">User Name</div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Email Address</div>
+                <div class="value">user@example.com</div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Phone Number</div>
+                <div class="value">XXXXXXXXXX</div>
+            </div>
+
+            <div class="info-box">
+                <div class="label">Role</div>
+                <div class="value">Registered User</div>
+            </div>
+
+        </div>
+
+        <button class="edit-btn" onclick="openPopup()">
+            Edit Profile
+        </button>
+
+    </div>
+
+</div>
+
+<div class="popup" id="popup">
+    <h2>✏️ Edit Profile</h2>
+    <p>Profile editing feature will be available soon.</p>
+
+    <button onclick="closePopup()">
+        Close
+    </button>
+</div>
+
+<script>
+
+function openPopup(){
+    document.getElementById("popup").style.display="block";
+}
+
+function closePopup(){
+    document.getElementById("popup").style.display="none";
+}
+
+</script>
+
+</body>
+</html>

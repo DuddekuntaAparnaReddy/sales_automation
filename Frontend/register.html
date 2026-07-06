@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <!-- Register Form Container -->
+  <div class="glow-blur" style="top: 20%; right: 30%; background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0) 70%);"></div>
+  
+  <div class="form-card" style="max-width: 550px; margin: 7.5rem auto 4rem auto; padding: 2.5rem;">
+    <div class="form-header">
+      <div class="logo" style="justify-content: center; margin-bottom: 0.75rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        Salesbot
+      </div>
+      <h1 class="form-title">User Registration</h1>
+      <p class="form-subtitle">Create a client account to test qualification bots and access demo workspaces.</p>
+    </div>
+
+    <form id="register-form" novalidate>
+      <div class="form-group">
+        <label for="fullname" class="form-label">Full Name</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="user"></i></span>
+          <input type="text" id="fullname" required class="form-input" placeholder="John Doe">
+        </div>
+        <div id="fullname-error" class="validation-msg error" style="display: none;"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="mail"></i></span>
+          <input type="email" id="email" required class="form-input" placeholder="john.doe@company.com">
+        </div>
+        <div id="email-error" class="validation-msg error" style="display: none;"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="form-label">Phone Number</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="phone"></i></span>
+          <input type="tel" id="phone" required class="form-input" placeholder="10-digit number">
+        </div>
+        <div id="phone-error" class="validation-msg error" style="display: none;"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="password" required class="form-input" placeholder="Min 8 chars, 1 uppercase, 1 special">
+        </div>
+        <div id="password-error" class="validation-msg error" style="display: none;"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm-password" class="form-label">Confirm Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon"><i data-lucide="lock"></i></span>
+          <input type="password" id="confirm-password" required class="form-input" placeholder="Repeat password">
+        </div>
+        <div id="confirm-password-error" class="validation-msg error" style="display: none;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem; margin-bottom: 1.25rem;">
+        Create Account <i data-lucide="user-plus" style="width: 1.1rem; height: 1.1rem;"></i>
+      </button>
+
+      <p style="text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+        Already have an account? <a href="login.html" class="form-link">Sign In</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- Dynamic Footer Bar -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

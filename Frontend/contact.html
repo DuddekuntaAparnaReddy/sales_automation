@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
+
+  <!-- Hero-style Header -->
+  <section class="hero" style="padding: 7rem 0 3rem 0;">
+    <div class="glow-blur" style="top: 10%; left: 30%; background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0) 70%);"></div>
+    <div class="container hero-content" style="text-align: left; max-width: 1000px; margin: 0 auto;">
+      <h1 class="hero-title" style="font-size: 2.75rem; margin-bottom: 0.5rem;">
+        Get in <span>Touch</span>
+      </h1>
+      <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px;">
+        Have questions? Reach out to our team. We respond within 2 hours.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Contact Layout -->
+  <section class="section" style="border-top: 1px solid var(--border-color); padding-top: 4rem;">
+    <div class="container">
+      <div class="contact-layout">
+        <!-- Form card -->
+        <div style="background: var(--surface-primary); border: 1px solid var(--border-color); border-radius: 1.25rem; padding: 2.5rem; box-shadow: var(--card-shadow);">
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="send" style="color: var(--primary);"></i> Send a Message
+          </h2>
+          <form id="contact-form" onsubmit="event.preventDefault(); alert('Message sent successfully! Our demo support team has recorded it.'); this.reset();">
+            <div class="form-group">
+              <label for="name" class="form-label">Full Name</label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i data-lucide="user"></i></span>
+                <input type="text" id="name" required class="form-input" placeholder="Your name">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email" class="form-label">Email Address</label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i data-lucide="mail"></i></span>
+                <input type="email" id="email" required class="form-input" placeholder="you@company.com">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="subject" class="form-label">Subject</label>
+              <div class="input-wrapper">
+                <span class="input-icon"><i data-lucide="bookmark"></i></span>
+                <input type="text" id="subject" required class="form-input" placeholder="How can we help you?">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="message" class="form-label">Message</label>
+              <textarea id="message" required class="form-input" style="min-height: 120px; resize: vertical; padding-left: 1rem;" placeholder="Tell us about your automation needs..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+              Send Message <i data-lucide="arrow-right" style="width: 1.1rem; height: 1.1rem;"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Info Card -->
+        <div class="contact-info-card">
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem;">Contact Details</h2>
+
+          <div class="contact-item">
+            <div class="contact-icon">
+              <i data-lucide="phone"></i>
+            </div>
+            <div>
+              <h3 class="contact-item-title">Phone Number</h3>
+              <p class="contact-item-desc">
+                +19599491429
+              </p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-icon">
+              <i data-lucide="mail"></i>
+            </div>
+            <div>
+              <h3 class="contact-item-title">Direct Email</h3>
+              <p class="contact-item-desc">
+                salesautomatione4@gmail.com
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section Accordions -->
+  <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Frequently Asked <span>Questions</span></h2>
+        <p class="section-subtitle">Got questions? Find immediate responses on project capabilities, billing, and system scaling.</p>
+      </div>
+
+        <div class="faq-item">
+          <div class="faq-header">
+            <span>What is Salesbot and how does it help users?</span>
+            <span class="faq-icon"><i data-lucide="chevron-down" style="width: 1.25rem; height: 1.25rem;"></i></span>
+          </div>
+          <div class="faq-content">
+            <p>Salesbot is an AI-powered sales and marketing automation platform that provides instant customer support, smart recommendations, and automated assistance through AI agents.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-header">
+            <span>How can I interact with the AI assistant?</span>
+            <span class="faq-icon"><i data-lucide="chevron-down" style="width: 1.25rem; height: 1.25rem;"></i></span>
+          </div>
+          <div class="faq-content">
+            <p>Users can interact with Salesbot through AI chat or voice assistance to ask questions, get suggestions, and receive real-time responses.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-header">
+            <span>Can Salesbot recommend products based on my requirements?</span>
+            <span class="faq-icon"><i data-lucide="chevron-down" style="width: 1.25rem; height: 1.25rem;"></i></span>
+          </div>
+          <div class="faq-content">
+            <p>Yes. Salesbot understands user needs such as budget, preferences, and purpose to provide personalized product or service recommendations.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-header">
+            <span>Can I directly talk with the AI assistant?</span>
+            <span class="faq-icon"><i data-lucide="chevron-down" style="width: 1.25rem; height: 1.25rem;"></i></span>
+          </div>
+          <div class="faq-content">
+            <p>Yes. Salesbot supports AI telephony, allowing users to call and communicate with the AI assistant like a normal conversation.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-header">
+            <span>How will I receive updates about offers and events?</span>
+            <span class="faq-icon"><i data-lucide="chevron-down" style="width: 1.25rem; height: 1.25rem;"></i></span>
+          </div>
+          <div class="faq-content">
+            <p>Salesbot provides automated promotional campaigns and event invitations to keep users informed about relevant offers, updates, and activities.</p>
+          </div>
+        </div>
+    </div>
+  </section>
+
+  <!-- Dynamic Footer Bar -->
+  <footer id="site-footer" class="site-footer"></footer>
+
+  <script src="js/shared.js"></script>
+  <!-- Simple inline script to manage FAQ toggle transitions -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const faqHeaders = document.querySelectorAll('.faq-header');
+      faqHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+          const faqItem = header.parentElement;
+          const isActive = faqItem.classList.contains('active');
+          
+          // Close other accordion elements
+          document.querySelectorAll('.faq-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          
+          if (!isActive) {
+            faqItem.classList.add('active');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
