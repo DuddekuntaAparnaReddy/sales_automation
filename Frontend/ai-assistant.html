@@ -821,7 +821,10 @@
             <i data-lucide="message-square-text" style="width: 1.1rem; height: 1.1rem;"></i> Text Assistant
           </button>
           <button class="tab-trigger" onclick="switchTab('voice')" id="tab-btn-voice">
-            <i data-lucide="phone-call" style="width: 1.1rem; height: 1.1rem;"></i> Voice Telephony
+            <i data-lucide="phone-call" style="width: 1.1rem; height: 1.1rem;"></i> Voice Assistant
+          </button>
+          <button class="tab-trigger" onclick="window.location.href='telephony.html'" id="tab-btn-telephony">
+            <i data-lucide="phone-forwarded" style="width: 1.1rem; height: 1.1rem;"></i> AI Telephony
           </button>
         </nav>
 
@@ -882,6 +885,10 @@
                 <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #94a3b8; display: inline-block;"></span> Offline
               </div>
               <h2 id="voiceStatusLabel" style="font-size: 1.35rem; font-weight: 700; margin-top: 0.25rem;">Salesbot Voice Channel</h2>
+              <div style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 0.5rem; font-size: 0.75rem;">
+                <span style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 600;">⚡ STT: Deepgram Nova-2</span>
+                <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 600;">🎙️ TTS: Sarvam AI Bulbul</span>
+              </div>
             </div>
 
             <!-- Animated Soundwaves -->
@@ -987,13 +994,24 @@
     }
 
     // --- TEXT CHAT SESSIONS LOGIC ---
+    function getStorageKeys() {
+      const session = getSession();
+      const suffix = session ? `_${session.user_id || session.email}` : '';
+      return {
+        sessionsKey: `salesbot_chat_sessions${suffix}`,
+        activeSessionKey: `salesbot_active_session_id${suffix}`
+      };
+    }
+
     async function loadSessions() {
-      const data = localStorage.getItem('salesbot_chat_sessions');
-      if (data) {
+      const { sessionsKey, activeSessionKey } = getStorageKeys();
+      const localData = localStorage.getItem(sessionsKey);
+      let localSessions = [];
+      if (localData) {
         try {
-          chatSessions = JSON.parse(data);
+          localSessions = JSON.parse(localData);
         } catch (e) {
-          chatSessions = [];
+          localSessions = [];
         }
       }
       
@@ -1009,53 +1027,75 @@
           if (response.ok) {
             const serverHistory = await response.json();
             if (serverHistory && serverHistory.length > 0) {
-              // Convert serverHistory turns to chat format
-              const messages = [];
-              serverHistory.forEach(conv => {
-                const timeStr = conv.timestamp ? new Date(conv.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                messages.push({
-                  id: `msg_user_${conv.id}`,
-                  sender: 'user',
-                  text: conv.user_message,
-                  timestamp: timeStr
-                });
-                messages.push({
-                  id: `msg_bot_${conv.id}`,
-                  sender: 'bot',
-                  text: conv.ai_response,
-                  timestamp: timeStr
-                });
+              // Sort history chronologically by timestamp
+              serverHistory.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+              // Group turns into distinct chat sessions based on time gaps (> 10 mins)
+              const groupedSessions = [];
+              let currentGroup = null;
+              let lastTime = null;
+
+              serverHistory.forEach((item, index) => {
+                const itemTime = item.timestamp ? new Date(item.timestamp).getTime() : (Date.now() + index);
+                
+                // Start a new chat session if gap > 10 mins or start of history
+                if (!currentGroup || (lastTime && (itemTime - lastTime > 10 * 60 * 1000))) {
+                  const firstMsg = item.user_message || "Chat Session";
+                  const titleText = firstMsg.length > 25 ? firstMsg.substring(0, 25) + "..." : firstMsg;
+                  currentGroup = {
+                    id: 'session_srv_' + (item.id || index),
+                    title: titleText,
+                    messages: [],
+                    createdTime: itemTime
+                  };
+                  groupedSessions.push(currentGroup);
+                }
+
+                const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                if (item.user_message) {
+                  currentGroup.messages.push({
+                    id: `msg_u_${item.id || index}`,
+                    sender: 'user',
+                    text: item.user_message,
+                    timestamp: timeStr
+                  });
+                }
+                if (item.ai_response) {
+                  currentGroup.messages.push({
+                    id: `msg_b_${item.id || index}`,
+                    sender: 'bot',
+                    text: item.ai_response,
+                    timestamp: timeStr
+                  });
+                }
+
+                lastTime = itemTime;
               });
-              
-              const serverSessionId = 'session_server_history';
-              const serverSession = {
-                id: serverSessionId,
-                title: 'Saved Conversation',
-                messages: messages
-              };
-              
-              // Remove any existing server history session to avoid duplication
-              chatSessions = chatSessions.filter(s => s.id !== serverSessionId);
-              
-              // Insert at the beginning of the sessions list
-              chatSessions.unshift(serverSession);
-              
-              // If active session was welcoming/empty, or not set, set to server session
-              const currentActive = localStorage.getItem('salesbot_active_session_id');
-              if (!currentActive || currentActive === 'session_greet' || chatSessions.length === 1) {
-                activeSessionId = serverSessionId;
-              }
+
+              // Filter out legacy single-bundle server session from local list
+              const nonDuplicateLocal = localSessions.filter(s => s.id !== 'session_server_history' && !s.id.startsWith('session_srv_'));
+
+              // Place grouped server sessions (newest on top) along with active local sessions
+              chatSessions = [...nonDuplicateLocal, ...groupedSessions.reverse()];
+            } else {
+              chatSessions = localSessions;
             }
+          } else {
+            chatSessions = localSessions;
           }
         } catch (error) {
           console.error("Error loading conversation history from server:", error);
+          chatSessions = localSessions;
         }
+      } else {
+        chatSessions = localSessions;
       }
       
       if (chatSessions.length === 0) {
         createNewSession("Welcome Session");
       } else {
-        activeSessionId = localStorage.getItem('salesbot_active_session_id') || chatSessions[0].id;
+        activeSessionId = localStorage.getItem(activeSessionKey) || chatSessions[0].id;
         if (!chatSessions.find(s => s.id === activeSessionId)) {
           activeSessionId = chatSessions[0].id;
         }
@@ -1087,8 +1127,9 @@
     }
 
     function saveSessions() {
-      localStorage.setItem('salesbot_chat_sessions', JSON.stringify(chatSessions));
-      localStorage.setItem('salesbot_active_session_id', activeSessionId);
+      const { sessionsKey, activeSessionKey } = getStorageKeys();
+      localStorage.setItem(sessionsKey, JSON.stringify(chatSessions));
+      localStorage.setItem(activeSessionKey, activeSessionId);
     }
 
     function renderSessionsList() {
@@ -1117,7 +1158,8 @@
 
     function selectSession(id) {
       activeSessionId = id;
-      localStorage.setItem('salesbot_active_session_id', activeSessionId);
+      const { activeSessionKey } = getStorageKeys();
+      localStorage.setItem(activeSessionKey, activeSessionId);
       renderSessionsList();
       renderActiveSessionMessages();
     }
@@ -1177,7 +1219,7 @@
       sendMessage(questionText);
     }
 
-    async function sendMessage(text = null) {
+    async function sendMessage(text = null, isVoice = false) {
       const input = document.getElementById("userInput");
       const queryText = text || input.value.trim();
       if (!queryText) return null;
@@ -1253,7 +1295,8 @@
           body: JSON.stringify({ 
             query: queryText,
             conversation_history: conversationHistory,
-            user_details: userDetails
+            user_details: userDetails,
+            is_voice: isVoice
           })
         });
         
@@ -1306,26 +1349,50 @@
       }
 
       recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.lang = 'en-IN';
 
       recognition.onstart = function() {
         console.log("Recognition started successfully.");
       };
 
-      recognition.onresult = function(event) {
+      recognition.onresult = async function(event) {
         if (!callActive) return;
         
-        const resultIndex = event.resultIndex;
-        const transcript = event.results[resultIndex][0].transcript.trim();
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            transcript += event.results[i][0].transcript;
+          }
+        }
+        transcript = transcript.trim();
         if (!transcript) return;
 
-        // Accumulate transcript from user
-        accumulatedTranscript += (accumulatedTranscript ? " " : "") + transcript;
-
-        // Print in transcript window
+        // Print full user utterance once in transcript window
         addVoiceTranscript('user', transcript);
+        
+        // Transition UI state to processing
+        setVoiceState('processing');
+
+        // Stop recognition while waiting for response to avoid speech loopback
+        try {
+          recognition.stop();
+        } catch (e) {}
+
+        // Send to existing chatbot handler with isVoice = true
+        const replyText = await sendMessage(transcript, true);
+        
+        if (callActive) {
+          if (replyText) {
+            addVoiceTranscript('bot', replyText);
+            speakResponse(replyText);
+          } else {
+            const errReply = "Connecting to backend failed. Please try again.";
+            addVoiceTranscript('bot', errReply);
+            speakResponse(errReply);
+          }
+        }
       };
 
       recognition.onerror = function(event) {
@@ -1343,11 +1410,15 @@
       recognition.onend = function() {
         // Auto-restart recognition if call is active and we are in listening mode
         if (callActive && currentVoiceState === 'listening') {
-          try {
-            recognition.start();
-          } catch (e) {
-            console.error("Auto-restart recognition failed:", e);
-          }
+          setTimeout(() => {
+            if (callActive && currentVoiceState === 'listening') {
+              try {
+                recognition.start();
+              } catch (e) {
+                console.error("Auto-restart recognition failed:", e);
+              }
+            }
+          }, 300);
         }
       };
 
@@ -1455,7 +1526,7 @@
         setVoiceState('processing');
         addVoiceTranscript('system', "Processing your final message...");
 
-        const replyText = await sendMessage(queryText);
+        const replyText = await sendMessage(queryText, true);
         
         if (replyText) {
           addVoiceTranscript('bot', replyText);

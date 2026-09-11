@@ -22,7 +22,7 @@ def generate_ai_response(prompt, system_prompt="You are a helpful assistant.", j
         ]
         
         # Using Llama 3.1 8B Model on Groq
-        model = "llama-3.1-8b-instant"
+        model = "openai/gpt-oss-120b"
         
         kwargs = {
             "model": model,
@@ -40,7 +40,7 @@ def generate_ai_response(prompt, system_prompt="You are a helpful assistant.", j
         return generate_mock_fallback(prompt, json_mode)
 
 
-def generate_ai_response_with_history(latest_message, conversation_history=None, system_prompt="You are a helpful assistant."):
+def generate_ai_response_with_history(latest_message, conversation_history=None, system_prompt="You are a helpful assistant.", is_voice=False):
     """
     Sends the full conversation history to Groq so the model maintains context
     across multiple turns within the same chat session.
@@ -53,7 +53,7 @@ def generate_ai_response_with_history(latest_message, conversation_history=None,
 
     if not GROQ_API_KEY:
         print("[GROQ CLIENT] No API Key found. Using mock fallback.")
-        return generate_mock_fallback_with_history(latest_message, conversation_history)
+        return generate_mock_fallback_with_history(latest_message, conversation_history, is_voice=is_voice)
 
     try:
         client = Groq(api_key=GROQ_API_KEY)
@@ -74,24 +74,26 @@ def generate_ai_response_with_history(latest_message, conversation_history=None,
         messages.append({"role": "user", "content": latest_message})
 
         chat_completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-120b",
             messages=messages,
             temperature=0.4,
-            max_tokens=1200
+            max_tokens=90 if is_voice else 1200
         )
         return chat_completion.choices[0].message.content
 
     except Exception as e:
         print(f"[GROQ CLIENT ERROR] History call failed: {e}. Using mock fallback.")
-        return generate_mock_fallback_with_history(latest_message, conversation_history)
+        return generate_mock_fallback_with_history(latest_message, conversation_history, is_voice=is_voice)
 
 
-def generate_mock_fallback_with_history(latest_message, conversation_history):
+def generate_mock_fallback_with_history(latest_message, conversation_history, is_voice=False):
     """
     Context-aware mock fallback that inspects conversation history and latest message
     to return category-specific sales recommendations and qualifying questions.
     """
-    all_text = " ".join([t.get("content", "") for t in conversation_history]) + " " + latest_message
+    # Only filter for user messages to avoid matching assistant's generic suggestion prompts
+    user_turns = [t.get("content", "") for t in conversation_history if t.get("role") == "user"]
+    all_text = " ".join(user_turns) + " " + latest_message
     all_lower = all_text.lower()
 
     # --- 1. Real Estate Category ---
@@ -103,6 +105,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
         has_budget = "lakh" in all_lower or "crore" in all_lower or "50" in all_lower or "₹" in all_lower
 
         if not (has_size and has_purpose and has_budget):
+            if is_voice:
+                return "I would be happy to assist with your land search near Hyderabad. Could you please tell me your preferred size, purpose, and budget?"
             # Ask qualifying questions based on missing fields
             questions = []
             if not has_size:
@@ -117,6 +121,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
                 "\n".join(questions)
             )
         else:
+            if is_voice:
+                return "I found a 1.5-acre agricultural land in Shadnagar for 45 Lakhs, and a 1-acre farm land near Ibrahimpatnam for 48 Lakhs. Would you like to schedule a site visit?"
             # Recommend listings
             return (
                 "Based on your requirement for land near Hyderabad, here are a few matched properties:\n\n"
@@ -134,6 +140,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
         has_budget = "budget" in all_lower or "₹" in all_lower or "lakh" in all_lower
 
         if not (has_quantity and has_brand):
+            if is_voice:
+                return "I can certainly help you source construction materials. Could you please share the required quantity and your preferred brand?"
             questions = []
             if not has_quantity:
                 questions.append("• What is the required quantity (e.g., in tons for steel or bags for cement)?")
@@ -145,6 +153,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
                 "\n".join(questions) + "\n• Also, what is the construction type (residential/commercial) and your approximate budget?"
             )
         else:
+            if is_voice:
+                return "I can offer TATA Tiscon steel rods for 68,000 rupees per ton, or JSW Neosteel for 66,500 rupees per ton. Shall I book an order for you?"
             return (
                 "Here is our quote for construction steel/cement:\n\n"
                 "1. **TATA Tiscon 550SD Steel Rods** — ₹68,000 per Ton\n"
@@ -169,6 +179,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
             return "Understood. What will be your primary usage (e.g. daily city commute, weekend highway trips) and fuel preference (Petrol, Diesel, EV)?"
 
         # If we have budget + info, recommend
+        if is_voice:
+            return "I recommend the Tata Nexon starting at 8.5 Lakhs, or the Hyundai Creta starting at 11 Lakhs. Would you like to book a test drive?"
         return (
             "Based on your budget and preferences, here are the top vehicle recommendations:\n\n"
             "1. **Tata Nexon (Petrol/EV)** (₹8.5 Lakhs - ₹15 Lakhs)\n"
@@ -188,6 +200,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
         if not (has_size and has_style):
             return "I'd love to help you find the perfect outfit! Could you please share your size, style preference (formal, casual, ethnic), and the occasion you are dressing for?"
         else:
+            if is_voice:
+                return "I recommend our Classic Slim Fit Cotton Shirt for 1,899 rupees, or the Stretchable Comfort Chinos for 2,499 rupees. Shall I add these to your cart?"
             return (
                 "Here are some handpicked options for you:\n\n"
                 "1. **Classic Slim Fit Cotton Shirt** — ₹1,899\n"
@@ -210,6 +224,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
     is_video     = "video editing" in all_lower or "editing" in all_lower
 
     if is_gaming and budget:
+        if is_voice:
+            return f"I recommend the ASUS ROG Strix G15 for gaming under your {budget} budget, or the HP Victus 15. Would you like details on either?"
         return (
             f"Based on your gaming requirement and ₹{budget:,} budget, here are my top picks:\n\n"
             "1. **ASUS ROG Strix G15** (₹85,000 approx)\n"
@@ -225,6 +241,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
         )
 
     if is_video and budget:
+        if is_voice:
+            return f"For video editing under {budget} rupees, I recommend the Apple MacBook Air M2 or the ASUS ProArt Studiobook. Would you prefer macOS or Windows?"
         return (
             f"For video editing under ₹{budget:,}, I recommend:\n\n"
             "1. **Apple MacBook Air M2** (₹95,000) — Exceptional video export speed, colour-accurate display\n"
@@ -234,6 +252,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
         )
 
     if is_office and budget:
+        if is_voice:
+            return f"For work under {budget} rupees, I recommend the Lenovo ThinkPad E14 or the HP EliteBook 840. Do you have a brand preference?"
         return (
             f"For office/work use under ₹{budget:,}, here are the best options:\n\n"
             "1. **Lenovo ThinkPad E14** (₹65,000) — Keyboard champion, enterprise build quality\n"
@@ -245,6 +265,8 @@ def generate_mock_fallback_with_history(latest_message, conversation_history):
     if "laptop" in all_lower and not is_gaming and not is_video and not is_office:
         return "What will you primarily use the laptop for? (Gaming, Office work, Video editing, College/Study, General use)"
 
+    if is_voice:
+        return "Hello! I am your Salesbot voice assistant. I can help you find products or services across Real Estate, Vehicles, Electronics, Fashion, or Construction. What are you looking for today?"
     return (
         "Hello! I am your Salesbot AI Assistant. I can help you find products or services "
         "across any domain — including Real Estate, Vehicles, Construction Materials, Electronics, or Fashion. "

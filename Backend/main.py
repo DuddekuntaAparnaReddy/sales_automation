@@ -185,6 +185,61 @@ def login():
 def logout():
     return jsonify({"message": "Logged out successfully"})
 
+@app.route("/api/profile", methods=["GET"])
+def get_profile():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    try:
+        user = User.query.get(int(user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        return jsonify({
+            "user_id": user.user_id,
+            "full_name": user.full_name,
+            "email": user.email,
+            "role": user.role,
+            "phone": user.phone or "",
+            "previous_interests": user.previous_interests or ""
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/profile/update", methods=["POST"])
+def update_profile():
+    data = request.json or {}
+    user_id = data.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+    
+    try:
+        user = User.query.get(int(user_id))
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        if "full_name" in data:
+            user.full_name = data["full_name"]
+        if "phone" in data:
+            user.phone = data["phone"]
+        if "previous_interests" in data:
+            user.previous_interests = data["previous_interests"]
+            
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Profile updated successfully",
+            "user": {
+                "user_id": user.user_id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role,
+                "phone": user.phone or ""
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 # --- AI ASSISTANT ---
 
 @app.route("/ai/chat", methods=["POST"])
@@ -650,6 +705,14 @@ def register_for_event():
     if not event:
         return jsonify({"error": "Event not found"}), 404
 
+    if event.date and event.date < date.today():
+        return jsonify({"error": "This event is already completed."}), 400
+
+    # Prevent duplicate registration
+    existing_reg = EventRegistration.query.filter_by(event_id=event.id, email=email).first()
+    if existing_reg:
+        return jsonify({"error": "You have already registered for this event."}), 400
+
     e_id = event.id
     e_name = event.title
     e_date_str = event.date.isoformat() if event.date else ""
@@ -716,9 +779,17 @@ def register_for_event():
 def get_registrations():
     try:
         event_id = request.args.get("event_id")
+        user_id = request.args.get("user_id")
+        email = request.args.get("email")
+
         query = EventRegistration.query
         if event_id:
             query = query.filter(EventRegistration.event_id == event_id)
+        if user_id:
+            query = query.filter(EventRegistration.user_id == int(user_id))
+        elif email:
+            query = query.filter(EventRegistration.email == email)
+
         regs = query.all()
         result = []
         for r in regs:
@@ -1755,6 +1826,343 @@ def get_conversation_logs():
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# --- TELEPHONY VOICE CHANNEL ROUTES (TWILIO INTEGRATION) ---
+
+import urllib.parse
+import logging
+
+logger = logging.getLogger(__name__)
+
+def get_public_base_url(req_data=None):
+    """
+    Resolve public base URL for Twilio webhooks.
+    1. Environment variable TWILIO_CALL_BASE_URL or TWILIO_BASE_URL
+    2. Request body webhook_url (if provided and not localhost/127.0.0.1)
+    """
+    if req_data is None:
+        req_data = {}
+    env_base = os.getenv("TWILIO_CALL_BASE_URL", "").strip() or os.getenv("TWILIO_BASE_URL", "").strip()
+    if env_base and not ("127.0.0.1" in env_base or "localhost" in env_base):
+        url = env_base.rstrip("/")
+    else:
+        req_webhook = (req_data.get("webhook_url") or "").strip()
+        if req_webhook and not ("127.0.0.1" in req_webhook or "localhost" in req_webhook):
+            url = req_webhook.rstrip("/")
+        else:
+            url = env_base.rstrip("/")
+            
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = f"https://{url}"
+    return url.rstrip("/")
+
+
+@app.route("/api/telephony/make-call", methods=["POST"])
+def make_telephony_call():
+    try:
+        from models import TelephonyCall, User
+        import requests
+        import time
+        import urllib.parse
+        
+        data = request.get_json() or {}
+        to_number = data.get("phone_number")
+        category = data.get("category", "General")
+        user_id = data.get("user_id")
+        
+        if not to_number:
+            return jsonify({"error": "Phone number is required"}), 400
+            
+        base_url = get_public_base_url(data)
+        
+        # Twilio Credentials from environment with user defaults
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID", "").strip()
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN", "").strip()
+        from_number = os.getenv("TWILIO_FROM_NUMBER", "").strip()
+        
+        # Build absolute URLs using proper URL query encoding
+        query_dict = {"category": category}
+        if user_id:
+            query_dict["user_id"] = str(user_id)
+            
+        query_str = urllib.parse.urlencode(query_dict)
+        start_url = f"{base_url}/api/telephony/twiml/start?{query_str}"
+        status_url = f"{base_url}/api/telephony/status"
+        
+        logger.info(f"[TELEPHONY MAKE CALL] Destination={to_number}, Category={category}, StartURL={start_url}")
+        
+        # Initiate Call using Twilio REST API with 'Url' parameter pointing to start_url
+        twilio_url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Calls.json"
+        payload = {
+            "To": to_number,
+            "From": from_number,
+            "Url": start_url,
+            "Method": "GET",
+            "StatusCallback": status_url,
+            "StatusCallbackEvent": ["initiated", "ringing", "answered", "completed"]
+        }
+        
+        response = requests.post(twilio_url, data=payload, auth=(account_sid, auth_token), timeout=8)
+        
+        call_sid = None
+        status = "Failed"
+        if response.status_code in [200, 201]:
+            resp_data = response.json()
+            call_sid = resp_data.get("sid")
+            status = (resp_data.get("status") or "Ringing").capitalize()
+            logger.info(f"[TWILIO CALL SUCCESS] CallSid={call_sid}, Status={status}")
+        else:
+            logger.error(f"[TWILIO CALL ERROR] Status Code {response.status_code}: {response.text}")
+            status = "Simulated"
+            call_sid = f"sim_{int(time.time())}"
+            
+        new_call = TelephonyCall(
+            user_id=user_id,
+            call_sid=call_sid,
+            phone_number=to_number,
+            category=category,
+            status=status
+        )
+        db.session.add(new_call)
+        db.session.commit()
+        
+        return jsonify({
+            "message": "Call initiated successfully",
+            "call": new_call.to_dict(),
+            "simulation": (status == "Simulated")
+        })
+        
+    except Exception as e:
+        logger.error(f"[TELEPHONY MAKE CALL CRASH] {e}", exc_info=True)
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/telephony/twiml/start", methods=["GET", "POST"])
+def telephony_twiml_start():
+    """
+    Initial TwiML endpoint hit when Twilio answers the call.
+    Delivers greeting and listens for caller response.
+    """
+    try:
+        import urllib.parse
+        import xml.etree.ElementTree as ET
+        
+        category = request.args.get("category") or request.form.get("category") or "General"
+        user_id = request.args.get("user_id") or request.form.get("user_id")
+        
+        base_url = get_public_base_url()
+        query_dict = {"category": category}
+        if user_id:
+            query_dict["user_id"] = str(user_id)
+            
+        query_str = urllib.parse.urlencode(query_dict)
+        action_url = f"{base_url}/api/telephony/twiml?{query_str}"
+        
+        greeting = "Hello! I am your Salesbot AI Voice Assistant. "
+        cat_lower = category.lower()
+        if cat_lower == 'real estate':
+            greeting += "I can help you search for land, apartments, and houses in Hyderabad. What requirements do you have?"
+        elif cat_lower == 'vehicles':
+            greeting += "I can recommend hatchbacks, sedans, and SUVs under your budget. What car are you looking for?"
+        elif cat_lower == 'construction':
+            greeting += "I can quote pricing for TATA Tiscon and JSW Neosteel rods. What is your construction type?"
+        elif cat_lower == 'fashion':
+            greeting += "I can recommend formal shirts, ethnic wear, and casual chinos. What is your style preference?"
+        else:
+            greeting += "I can answer queries about Real Estate, Vehicles, Construction, Fashion, or Laptops. What are you looking for today?"
+
+        root = ET.Element("Response")
+        gather = ET.SubElement(root, "Gather", {
+            "input": "speech dtmf",
+            "action": action_url,
+            "method": "POST",
+            "speechTimeout": "1",
+            "language": "en-IN"
+        })
+        say = ET.SubElement(gather, "Say", {"voice": "alice", "language": "en-IN"})
+        say.text = greeting
+
+        # Fallback if Gather times out with no speech
+        fallback_say = ET.SubElement(root, "Say", {"voice": "alice", "language": "en-IN"})
+        fallback_say.text = "Are you there? Please tell me how I can help you today."
+        
+        fallback_gather = ET.SubElement(root, "Gather", {
+            "input": "speech dtmf",
+            "action": action_url,
+            "method": "POST",
+            "speechTimeout": "1",
+            "language": "en-IN"
+        })
+        fg_say = ET.SubElement(fallback_gather, "Say", {"voice": "alice", "language": "en-IN"})
+        fg_say.text = "Go ahead, I am listening."
+
+        ET.SubElement(root, "Redirect", {"method": "POST"}).text = f"{action_url}&no_input=true"
+
+        xml_str = '<?xml version="1.0" encoding="UTF-8"?>' + ET.tostring(root, encoding="unicode")
+        logger.info(f"[TwiML START] Delivered greeting for category={category}, ActionURL={action_url}")
+        return xml_str, 200, {"Content-Type": "application/xml; charset=utf-8"}
+        
+    except Exception as e:
+        logger.error(f"[TwiML START CRASH] {e}", exc_info=True)
+        xml_err = '<?xml version="1.0" encoding="UTF-8"?><Response><Say voice="alice" language="en-IN">We experienced a technical error. Goodbye.</Say><Hangup/></Response>'
+        return xml_err, 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+
+@app.route("/api/telephony/twiml", methods=["GET", "POST"])
+def telephony_twiml_webhook():
+    """
+    Twilio callback webhook hit on each speech/DTMF turn.
+    Sends user transcript to Groq AI LLM -> Returns TwiML with AI response and next <Gather>.
+    """
+    try:
+        from models import Conversation
+        from ai_module.groq_client import generate_ai_response_with_history
+        import urllib.parse
+        import xml.etree.ElementTree as ET
+        
+        speech_result = request.form.get("SpeechResult", "").strip()
+        digits = request.form.get("Digits", "").strip()
+        user_speech = speech_result or digits
+        
+        category = request.args.get("category") or request.form.get("category") or "General"
+        user_id = request.args.get("user_id") or request.form.get("user_id")
+        no_input = (request.args.get("no_input") == "true") or (request.form.get("no_input") == "true")
+        
+        base_url = get_public_base_url()
+        query_dict = {"category": category}
+        if user_id:
+            query_dict["user_id"] = str(user_id)
+            
+        query_str = urllib.parse.urlencode(query_dict)
+        action_url = f"{base_url}/api/telephony/twiml?{query_str}"
+
+        logger.info(f"[TELEPHONY WEBHOOK] Speech='{speech_result}', Digits='{digits}', Category={category}, UserId={user_id}")
+
+        history = []
+        if user_id and str(user_id).isdigit():
+            convs = Conversation.query.filter_by(user_id=int(user_id)).order_by(Conversation.timestamp.desc()).limit(5).all()
+            for c in reversed(convs):
+                history.append({"role": "user", "content": c.user_message})
+                history.append({"role": "assistant", "content": c.ai_response})
+
+        root = ET.Element("Response")
+
+        if user_speech:
+            system_prompt = (
+                f"You are Salesbot, a friendly and expert AI tele-sales assistant specializing in {category}. "
+                "The customer is speaking with you live on the phone. "
+                "Keep every answer ultra-concise (1-2 short sentences, under 30 words) so it sounds natural when spoken. "
+                "Do NOT use markdown tags (no bold, asterisks, bullet points), emojis, or complex formatting. "
+                "If the caller says goodbye, bye, or wants to hang up, include '[END_CALL]' at the start of your message."
+            )
+            
+            ai_response = generate_ai_response_with_history(user_speech, history, system_prompt=system_prompt, is_voice=True)
+            
+            if user_id and str(user_id).isdigit():
+                try:
+                    new_conv = Conversation(
+                        user_id=int(user_id),
+                        user_message=user_speech,
+                        ai_response=ai_response
+                    )
+                    db.session.add(new_conv)
+                    db.session.commit()
+                except Exception as log_ex:
+                    logger.error(f"[TELEPHONY DB LOG ERROR] {log_ex}")
+                    db.session.rollback()
+
+            if "[END_CALL]" in ai_response:
+                clean_reply = ai_response.replace("[END_CALL]", "").strip() or "Thank you for speaking with Salesbot. Have a great day! Goodbye."
+                say = ET.SubElement(root, "Say", {"voice": "alice", "language": "en-IN"})
+                say.text = clean_reply
+                ET.SubElement(root, "Hangup")
+            else:
+                gather = ET.SubElement(root, "Gather", {
+                    "input": "speech dtmf",
+                    "action": action_url,
+                    "method": "POST",
+                    "speechTimeout": "1",
+                    "language": "en-IN"
+                })
+                say = ET.SubElement(gather, "Say", {"voice": "alice", "language": "en-IN"})
+                say.text = ai_response
+                
+                # Silence fallback
+                fallback_say = ET.SubElement(root, "Say", {"voice": "alice", "language": "en-IN"})
+                fallback_say.text = "I am listening. Feel free to ask anything else."
+                ET.SubElement(root, "Redirect", {"method": "POST"}).text = f"{action_url}&no_input=true"
+
+        elif no_input:
+            gather = ET.SubElement(root, "Gather", {
+                "input": "speech dtmf",
+                "action": action_url,
+                "method": "POST",
+                "speechTimeout": "1",
+                "language": "en-IN"
+            })
+            say = ET.SubElement(gather, "Say", {"voice": "alice", "language": "en-IN"})
+            say.text = "Are you still there? Please tell me what you are looking for today."
+            ET.SubElement(root, "Redirect", {"method": "POST"}).text = f"{action_url}&no_input=true"
+
+        else:
+            # Re-issue greeting if hit directly
+            greeting = f"Hello! I am your Salesbot AI Assistant for {category}. How can I assist you?"
+            gather = ET.SubElement(root, "Gather", {
+                "input": "speech dtmf",
+                "action": action_url,
+                "method": "POST",
+                "speechTimeout": "1",
+                "language": "en-IN"
+            })
+            say = ET.SubElement(gather, "Say", {"voice": "alice", "language": "en-IN"})
+            say.text = greeting
+            ET.SubElement(root, "Redirect", {"method": "POST"}).text = f"{action_url}&no_input=true"
+
+        xml_str = '<?xml version="1.0" encoding="UTF-8"?>' + ET.tostring(root, encoding="unicode")
+        return xml_str, 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+    except Exception as e:
+        logger.error(f"[TELEPHONY WEBHOOK CRASH] {e}", exc_info=True)
+        xml_err = '<?xml version="1.0" encoding="UTF-8"?><Response><Say voice="alice" language="en-IN">Sorry, a system error occurred. Goodbye.</Say><Hangup/></Response>'
+        return xml_err, 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+
+@app.route("/api/telephony/status", methods=["POST"])
+def telephony_status_callback():
+    """
+    Twilio POSTs here for call lifecycle updates (ringing, answered, completed, etc.).
+    """
+    try:
+        from models import TelephonyCall
+        call_sid = request.form.get("CallSid")
+        call_status = request.form.get("CallStatus")
+        duration = request.form.get("CallDuration")
+        
+        logger.info(f"[TWILIO STATUS CALLBACK] CallSid={call_sid}, Status={call_status}, Duration={duration}")
+        
+        if call_sid:
+            call_rec = TelephonyCall.query.filter_by(call_sid=call_sid).first()
+            if call_rec:
+                call_rec.status = (call_status or "completed").capitalize()
+                if duration and duration.isdigit():
+                    call_rec.duration = int(duration)
+                db.session.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        logger.error(f"[TELEPHONY STATUS CALLBACK ERROR] {e}")
+        return jsonify({"ok": False}), 500
+
+@app.route("/api/telephony/history", methods=["GET"])
+def get_telephony_history():
+    try:
+        from models import TelephonyCall
+        calls = TelephonyCall.query.order_by(TelephonyCall.created_at.desc()).all()
+        return jsonify([c.to_dict() for c in calls])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/conversations/stats", methods=["GET"])
 def get_conversation_stats():

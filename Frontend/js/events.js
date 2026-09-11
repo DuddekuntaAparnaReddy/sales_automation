@@ -1,5 +1,37 @@
 async function loadEvents() {
     try {
+        // Fetch registrations first if user is logged in
+        let registeredEventIds = new Set();
+        const sessionStr = localStorage.getItem("session");
+        if (sessionStr) {
+            try {
+                const session = JSON.parse(sessionStr);
+                const userEmail = session.email || "";
+                const userId = session.user_id || null;
+                
+                let regUrl = "";
+                if (userId) {
+                    regUrl = `http://127.0.0.1:8000/registrations?user_id=${userId}`;
+                } else if (userEmail) {
+                    regUrl = `http://127.0.0.1:8000/registrations?email=${encodeURIComponent(userEmail)}`;
+                }
+                
+                if (regUrl) {
+                    const regResponse = await fetch(regUrl);
+                    if (regResponse.ok) {
+                        const regs = await regResponse.json();
+                        regs.forEach(r => {
+                            if (r[5]) { // event_id is at index 5
+                                registeredEventIds.add(parseInt(r[5], 10));
+                            }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading user registrations:", e);
+            }
+        }
+
         const response = await fetch("http://127.0.0.1:8000/events?status=Active");
         const data = await response.json();
         
@@ -27,14 +59,61 @@ async function loadEvents() {
             const eventDate = event[2];
             const venue = event[3];
             const status = event[4];
-            const description = event[5] || `Join us for this exciting ${event[7] || 'event'}!`;
-            const time = event[6] || "";
+            const description = event[5];
+            const time = event[6];
             const eventType = event[7] || "Special Event";
             const deadline = event[8] || "";
 
             // Format date if possible
             const formattedDate = eventDate ? new Date(eventDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : "TBA";
             const formattedDeadline = deadline ? new Date(deadline).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : "";
+
+            // Fallback values to show them "for sure"
+            const dateVal = formattedDate || "TBA";
+            const timeVal = time ? time : "TBA";
+            const venueVal = venue ? venue : "TBA";
+            const descriptionVal = description ? description : "Join us for this exciting event!";
+
+            // 1. Check if the event date is in the past
+            let isCompleted = false;
+            if (eventDate) {
+                const parts = eventDate.split('-');
+                if (parts.length === 3) {
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // 0-indexed
+                    const day = parseInt(parts[2], 10);
+                    
+                    const eventDateObj = new Date(year, month, day);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    isCompleted = eventDateObj < today;
+                }
+            }
+
+            // 2. Check if the user has already registered
+            const isRegistered = registeredEventIds.has(parseInt(eventId, 10));
+
+            // 3. Render action button based on status
+            let actionButtonHtml = "";
+            if (isCompleted) {
+                actionButtonHtml = `
+                <button class="register-btn" disabled style="background: rgba(239, 68, 68, 0.08); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); cursor: not-allowed; font-weight: 600;">
+                    Registration Closed
+                </button>
+                `;
+            } else if (isRegistered) {
+                actionButtonHtml = `
+                <button class="register-btn" disabled style="background: rgba(34, 197, 94, 0.08); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.25); cursor: not-allowed; font-weight: 600;">
+                    Already Registered
+                </button>
+                `;
+            } else {
+                actionButtonHtml = `
+                <button class="register-btn" onclick="registerEvent(${eventId}, '${eventName.replace(/'/g, "\\'")}', '${eventDate}')">
+                    Register Now
+                </button>
+                `;
+            }
 
             grid.innerHTML += `
             <div class="event-card">
@@ -45,17 +124,15 @@ async function loadEvents() {
                     <div class="event-meta">
                         <div class="event-meta-item">
                             <i data-lucide="calendar" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
-                            <span>${formattedDate}</span>
+                            <span>Date: ${dateVal}</span>
                         </div>
-                        ${time ? `
                         <div class="event-meta-item">
                             <i data-lucide="clock" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
-                            <span>${time}</span>
+                            <span>Time: ${timeVal}</span>
                         </div>
-                        ` : ''}
                         <div class="event-meta-item">
                             <i data-lucide="map-pin" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
-                            <span>${venue}</span>
+                            <span>Place: ${venueVal}</span>
                         </div>
                         ${formattedDeadline ? `
                         <div class="event-meta-item" style="color: var(--danger); font-weight: 500;">
@@ -65,12 +142,10 @@ async function loadEvents() {
                         ` : ''}
                     </div>
 
-                    <p class="event-description">${description}</p>
+                    <p class="event-description"><strong>Description:</strong> ${descriptionVal}</p>
                 </div>
 
-                <button class="register-btn" onclick="registerEvent(${eventId}, '${eventName.replace(/'/g, "\\'")}')">
-                    Register Now
-                </button>
+                ${actionButtonHtml}
             </div>
             `;
         });
@@ -83,8 +158,27 @@ async function loadEvents() {
     }
 }
 
-// Step 1: Show confirmation dialog
-function registerEvent(eventId, eventName) {
+// Step 1: Show confirmation dialog or popup if completed
+function registerEvent(eventId, eventName, eventDateStr) {
+    if (eventDateStr) {
+        // Parse YYYY-MM-DD manually to avoid timezone shift
+        const parts = eventDateStr.split('-');
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; // 0-indexed
+            const day = parseInt(parts[2], 10);
+            
+            const eventDateObj = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (eventDateObj < today) {
+                showPopup("Event Completed", "This event has already completed. Registration is closed.", false);
+                return;
+            }
+        }
+    }
+
     // Show confirmation dialog
     const msgEl = document.getElementById("confirm-message");
     if (msgEl) {
@@ -104,6 +198,7 @@ function registerEvent(eventId, eventName) {
         if (window.lucide) window.lucide.createIcons();
     }
 }
+
 
 // Step 2: User clicked "Yes, Register" — do actual registration
 async function confirmRegistration() {
@@ -171,20 +266,53 @@ async function confirmRegistration() {
 
         const data = await response.json();
         if (response.ok) {
-            const msgEl = document.getElementById("popup-message");
-            if (msgEl) {
-                msgEl.innerText = `Successfully registered for "${eventName}". A confirmation email has been dispatched to ${email}.`;
-            }
-            const popup = document.getElementById("popup");
-            if (popup) popup.style.display = "flex";
-            if (window.lucide) window.lucide.createIcons();
+            showPopup(
+                "Registration Successful!", 
+                `Successfully registered for "${eventName}". A confirmation email has been dispatched to ${email}.`, 
+                true
+            );
+            // Reload the events display to update button states
+            loadEvents();
         } else {
-            alert(data.error || "Registration failed. Please try again.");
+            showPopup("Registration Failed", data.error || "Registration failed. Please try again.", false);
         }
 
     } catch (error) {
         console.error("Registration error:", error);
-        alert("Backend Connection Error. Please make sure the server is running.");
+        showPopup(
+            "Connection Error", 
+            "Backend Connection Error. Please make sure the server is running.", 
+            false
+        );
+    }
+}
+
+// Custom Modal Popup Helper
+function showPopup(title, message, isSuccess = true) {
+    const titleEl = document.getElementById("popup-title");
+    const msgEl = document.getElementById("popup-message");
+    const iconContainer = document.getElementById("popup-icon-container");
+    const iconEl = document.getElementById("popup-icon");
+    const popup = document.getElementById("popup");
+    
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    
+    if (iconContainer && iconEl) {
+        if (isSuccess) {
+            iconContainer.style.background = "rgba(34, 197, 94, 0.15)";
+            iconEl.setAttribute("data-lucide", "check-circle");
+            iconEl.style.color = "var(--success)";
+        } else {
+            iconContainer.style.background = "rgba(239, 68, 68, 0.15)";
+            iconEl.setAttribute("data-lucide", "x-circle");
+            iconEl.style.color = "#ef4444";
+        }
+    }
+    
+    if (popup) {
+        popup.style.display = "flex";
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 

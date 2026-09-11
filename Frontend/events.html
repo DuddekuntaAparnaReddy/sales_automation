@@ -167,19 +167,19 @@
     </div>
   </div>
 
-  <!-- Success Popup -->
+  <!-- Success/Error Feedback Popup -->
   <div class="popup-overlay" id="popup">
     <div class="popup-content">
-      <div style="width: 4.5rem; height: 4.5rem; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
-        <i data-lucide="check-circle" style="color: var(--success); width: 2.5rem; height: 2.5rem;"></i>
+      <div id="popup-icon-container" style="width: 4.5rem; height: 4.5rem; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+        <i id="popup-icon" data-lucide="check-circle" style="color: var(--success); width: 2.5rem; height: 2.5rem;"></i>
       </div>
-      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: white;">Registration Successful!</h2>
+      <h2 id="popup-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: white;">Registration Successful!</h2>
       <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;" id="popup-message">Your seat has been reserved. A confirmation email has been sent.</p>
       <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closePopup()">Close</button>
     </div>
   </div>
 
-  <script src="js/shared.js"></script>
-  <script src="js/events.js"></script>
+  <script src="js/shared.js?v=3"></script>
+  <script src="js/events.js?v=3"></script>
 </body>
 </html>

@@ -29,14 +29,25 @@ def ai_chat():
     query = data.get("query")
     # conversation_history: list of {role: "user"|"assistant", content: "..."}
     conversation_history = data.get("conversation_history", [])
+    is_voice = data.get("is_voice", False)
 
     if not query:
         return jsonify({"error": "Missing query field"}), 400
 
+    system_prompt = SALESBOT_SYSTEM_PROMPT
+    if is_voice:
+        system_prompt += (
+            "\n\nVOICE ASSISTANT MODE ACTIVE:\n"
+            "1. You are speaking directly to the user on a voice call.\n"
+            "2. Your response MUST be extremely short and concise: exactly 1 to 2 sentences (maximum 30 words total).\n"
+            "3. Do NOT use markdown bold/italic tags (** or *), lists, bullet points, numbered recommendations, or emojis. Keep it clean and direct for text-to-speech reading."
+        )
+
     response = generate_ai_response_with_history(
         query,
         conversation_history=conversation_history,
-        system_prompt=SALESBOT_SYSTEM_PROMPT
+        system_prompt=system_prompt,
+        is_voice=is_voice
     )
 
     # Trigger background lead qualification if user details are provided

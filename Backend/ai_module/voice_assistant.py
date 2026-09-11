@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ai_module.groq_client import generate_ai_response
+from ai_module.stt_deepgram import transcribe_audio_bytes
+from ai_module.tts_sarvam import synthesize_speech_sarvam
 
 voice_assistant_bp = Blueprint('voice_assistant', __name__)
 
@@ -58,3 +60,77 @@ def voice_chat():
         print(f"[CONVERSATION LOGGING ERROR] {ex}")
 
     return jsonify({"response": response})
+
+
+# --- DEEPGRAM STT ENDPOINT ---
+@voice_assistant_bp.route("/api/voice/stt", methods=["POST"])
+def deepgram_stt_route():
+    try:
+        audio_file = request.files.get("audio")
+        mimetype = request.form.get("mimetype", "audio/wav")
+        language = request.form.get("language", "en")
+        
+        if not audio_file:
+            audio_bytes = request.data
+        else:
+            audio_bytes = audio_file.read()
+            
+        if not audio_bytes:
+            return jsonify({"error": "No audio payload provided"}), 400
+            
+        res = transcribe_audio_bytes(audio_bytes, mimetype=mimetype, language=language)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e), "engine": "error"}), 500
+
+
+# --- SARVAM AI TTS ENDPOINT ---
+@voice_assistant_bp.route("/api/voice/tts", methods=["POST"])
+def sarvam_tts_route():
+    try:
+        data = request.json or {}
+        text = data.get("text")
+        if not text:
+            return jsonify({"error": "Missing text field"}), 400
+            
+        language = data.get("language", "en-IN")
+        speaker = data.get("speaker", "meera")
+        
+        res = synthesize_speech_sarvam(text, target_language_code=language, speaker=speaker)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e), "engine": "error"}), 500
+
+
+# --- FULL VOICE PIPELINE (DEEPGRAM STT -> GROQ LLM -> SARVAM AI TTS) ---
+@voice_assistant_bp.route("/api/voice/process-full", methods=["POST"])
+def process_full_voice():
+    try:
+        data = request.json or {}
+        text_query = data.get("query")
+        
+        if not text_query:
+            audio_file = request.files.get("audio")
+            if audio_file:
+                stt_res = transcribe_audio_bytes(audio_file.read())
+                text_query = stt_res.get("transcript")
+                
+        if not text_query:
+            return jsonify({"error": "Unable to transcribe or missing query"}), 400
+
+        system_prompt = (
+            "You are Salesbot AI Voice Assistant. Provide ultra-concise, natural responses (1-2 sentences) "
+            "suitable for text-to-speech reading. Do not use markdown."
+        )
+        ai_response = generate_ai_response(text_query, system_prompt=system_prompt, json_mode=False)
+        tts_res = synthesize_speech_sarvam(ai_response, target_language_code="en-IN")
+        
+        return jsonify({
+            "transcript": text_query,
+            "response": ai_response,
+            "stt_engine": "deepgram",
+            "tts_engine": tts_res.get("engine"),
+            "audio_base64": tts_res.get("audio_base64")
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

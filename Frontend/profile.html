@@ -1,180 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profile - Salesbot</title>
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,sans-serif;
-}
-
-body{
-    background:#f4f4f4;
-    padding:40px;
-}
-
-.container{
-    max-width:700px;
-    margin:auto;
-}
-
-.profile-card{
-    background:white;
-    padding:30px;
-    border-radius:15px;
-    box-shadow:0 0 15px rgba(0,0,0,0.1);
-    text-align:center;
-}
-
-.profile-image{
-    width:120px;
-    height:120px;
-    border-radius:50%;
-    background:#6c63ff;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:40px;
-    margin:0 auto 20px;
-}
-
-h1{
-    margin-bottom:10px;
-    color:#333;
-}
-
-.profile-info{
-    text-align:left;
-    margin-top:25px;
-}
-
-.info-box{
-    background:#f8f8f8;
-    padding:15px;
-    border-radius:8px;
-    margin-bottom:15px;
-}
-
-.label{
-    font-weight:bold;
-    color:#555;
-    margin-bottom:5px;
-}
-
-.value{
-    color:#222;
-}
-
-.edit-btn{
-    margin-top:20px;
-    background:#6c63ff;
-    color:white;
-    border:none;
-    padding:12px 25px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
-}
-
-.edit-btn:hover{
-    background:#564fd1;
-}
-
-.popup{
-    display:none;
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    background:white;
-    padding:30px;
-    border-radius:12px;
-    box-shadow:0 0 20px rgba(0,0,0,0.2);
-    text-align:center;
-}
-
-.popup button{
-    margin-top:15px;
-    padding:10px 20px;
-    border:none;
-    background:#6c63ff;
-    color:white;
-    border-radius:6px;
-    cursor:pointer;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Salesbot</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body.dark {
+      background: var(--bg-primary, #0f172a);
+      color: var(--text-primary, #f1f5f9);
+      font-family: 'Inter', sans-serif;
+    }
+    .profile-card {
+      background: var(--bg-secondary, #1e293b);
+      border: 1px solid var(--border-color, #334155);
+      padding: 2.5rem;
+      border-radius: 1.25rem;
+      box-shadow: var(--card-shadow, 0 10px 30px rgba(0,0,0,0.25));
+      text-align: center;
+      color: white;
+      margin-top: 2rem;
+    }
+    .profile-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 8px 16px rgba(108, 99, 255, 0.3);
+    }
+    .profile-info {
+      text-align: left;
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .info-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color, #334155);
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+    }
+    .label {
+      font-weight: bold;
+      color: var(--text-secondary, #94a3b8);
+      margin-bottom: 0.35rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .value {
+      color: white;
+      font-size: 1.1rem;
+    }
+    .edit-btn {
+      margin-top: 2rem;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      border: none;
+      padding: 0.85rem 2.5rem;
+      border-radius: 0.625rem;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .edit-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-content {
+      background: var(--bg-secondary, #1e293b);
+      border: 1px solid var(--border-color, #334155);
+      border-radius: 1.25rem;
+      max-width: 480px;
+      width: 90%;
+      padding: 2.5rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      color: white;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary, #94a3b8);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color, #334155);
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      border-color: #8b5cf6;
+    }
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+    .btn-save {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+    .btn-cancel {
+      background: transparent;
+      color: var(--text-secondary, #94a3b8);
+      border: 1px solid var(--border-color, #334155);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  </style>
 </head>
-<body>
+<body class="dark">
 
-<div class="container">
+  <!-- Dynamic Header Bar -->
+  <header id="site-header" class="site-header"></header>
 
+  <!-- Profile Card Container -->
+  <div class="container" style="max-width: 700px; margin: 7rem auto 4rem auto; padding: 0 1.5rem;">
     <div class="profile-card">
+      <div class="profile-image" id="profile-avatar-display">U</div>
+      <h1 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem;">User Profile</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage your lead details and personal details</p>
 
-        <div class="profile-image">
-    U
-</div>
-
-        <h1>User Profile</h1>
-
-        <div class="profile-info">
-
-            <div class="info-box">
-                <div class="label">Full Name</div>
-                <div class="value">User Name</div>
-            </div>
-
-            <div class="info-box">
-                <div class="label">Email Address</div>
-                <div class="value">user@example.com</div>
-            </div>
-
-            <div class="info-box">
-                <div class="label">Phone Number</div>
-                <div class="value">XXXXXXXXXX</div>
-            </div>
-
-            <div class="info-box">
-                <div class="label">Role</div>
-                <div class="value">Registered User</div>
-            </div>
-
+      <div class="profile-info">
+        <div class="info-box">
+          <div class="label">Full Name</div>
+          <div class="value" id="profile-name-display">Loading...</div>
         </div>
 
-        <button class="edit-btn" onclick="openPopup()">
-            Edit Profile
-        </button>
+        <div class="info-box">
+          <div class="label">Email Address</div>
+          <div class="value" id="profile-email-display">Loading...</div>
+        </div>
 
+        <div class="info-box">
+          <div class="label">Phone Number</div>
+          <div class="value" id="profile-phone-display">Loading...</div>
+        </div>
+
+        <div class="info-box">
+          <div class="label">Previous Interests</div>
+          <div class="value" id="profile-interests-display">Loading...</div>
+        </div>
+
+        <div class="info-box">
+          <div class="label">Role</div>
+          <div class="value" id="profile-role-display">Loading...</div>
+        </div>
+      </div>
+
+      <button class="edit-btn" onclick="openPopup()">
+        Edit Profile
+      </button>
     </div>
+  </div>
 
-</div>
+  <!-- Edit Profile Modal Popup -->
+  <div class="popup-overlay" id="edit-popup">
+    <div class="popup-content">
+      <div style="width: 4rem; height: 4rem; border-radius: 50%; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto;">
+        <i data-lucide="user" style="color: #a78bfa; width: 2rem; height: 2rem;"></i>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 1.5rem; color: white;">✏️ Edit Profile</h2>
+      
+      <form id="edit-profile-form" onsubmit="saveProfile(event)">
+        <div class="form-group">
+          <label for="edit-name">Full Name</label>
+          <input type="text" id="edit-name" required placeholder="Enter full name">
+        </div>
 
-<div class="popup" id="popup">
-    <h2>✏️ Edit Profile</h2>
-    <p>Profile editing feature will be available soon.</p>
+        <div class="form-group">
+          <label for="edit-phone">Phone Number</label>
+          <input type="text" id="edit-phone" placeholder="Enter phone number">
+        </div>
 
-    <button onclick="closePopup()">
-        Close
-    </button>
-</div>
+        <div class="form-group">
+          <label for="edit-interests">Previous Interests</label>
+          <input type="text" id="edit-interests" placeholder="e.g. Laptops, Real Estate, SaaS">
+        </div>
 
-<script>
+        <div class="btn-row">
+          <button type="button" class="btn-cancel" onclick="closePopup()">Cancel</button>
+          <button type="submit" class="btn-save">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-function openPopup(){
-    document.getElementById("popup").style.display="block";
-}
+  <!-- Success Popup -->
+  <div class="popup-overlay" id="success-popup">
+    <div class="popup-content" style="text-align: center; max-width: 420px;">
+      <div style="width: 4.5rem; height: 4.5rem; border-radius: 50%; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+        <i data-lucide="check-circle" style="color: var(--success); width: 2.5rem; height: 2.5rem;"></i>
+      </div>
+      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; color: white;">Profile Updated!</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;">Your profile settings have been updated and synchronized successfully.</p>
+      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closeSuccessPopup()">Close</button>
+    </div>
+  </div>
 
-function closePopup(){
-    document.getElementById("popup").style.display="none";
-}
+  <script src="js/shared.js"></script>
+  <script>
+    // Ensure user is logged in
+    const sessionStr = localStorage.getItem("session");
+    if (!sessionStr) {
+      window.location.href = "login.html";
+    }
 
-</script>
+    let currentUser = JSON.parse(sessionStr);
 
+    // Fetch profile details from backend on load
+    async function loadProfile() {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/api/profile?user_id=${currentUser.user_id}`);
+        if (response.ok) {
+          const user = await response.json();
+
+          // Render on page
+          document.getElementById("profile-name-display").textContent = user.full_name || "N/A";
+          document.getElementById("profile-email-display").textContent = user.email || "N/A";
+          document.getElementById("profile-phone-display").textContent = user.phone || "N/A";
+          document.getElementById("profile-role-display").textContent = user.role || "N/A";
+          document.getElementById("profile-interests-display").textContent = user.previous_interests || "None";
+
+          // Set dynamic avatar initial
+          const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : "U";
+          document.getElementById("profile-avatar-display").textContent = initial;
+
+          // Fill inputs inside edit modal
+          document.getElementById("edit-name").value = user.full_name || "";
+          document.getElementById("edit-phone").value = user.phone || "";
+          document.getElementById("edit-interests").value = user.previous_interests || "";
+        } else {
+          console.error("Failed to load user profile from backend.");
+        }
+      } catch (e) {
+        console.error("Error loading user profile:", e);
+      }
+    }
+
+    function openPopup() {
+      document.getElementById("edit-popup").style.display = "flex";
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function closePopup() {
+      document.getElementById("edit-popup").style.display = "none";
+    }
+
+    function closeSuccessPopup() {
+      document.getElementById("success-popup").style.display = "none";
+    }
+
+    // Save profile to database
+    async function saveProfile(event) {
+      event.preventDefault();
+
+      const updatedName = document.getElementById("edit-name").value.trim();
+      const updatedPhone = document.getElementById("edit-phone").value.trim();
+      const updatedInterests = document.getElementById("edit-interests").value.trim();
+
+      if (!updatedName) {
+        alert("Full Name is required.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/api/profile/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            user_id: currentUser.user_id,
+            full_name: updatedName,
+            phone: updatedPhone,
+            previous_interests: updatedInterests
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          closePopup();
+
+          // Sync localStorage session fields so changes display everywhere (e.g. Header dropdowns)
+          currentUser.full_name = data.user.full_name;
+          currentUser.phone = data.user.phone;
+          
+          localStorage.setItem("session", JSON.stringify(currentUser));
+
+          // Reload UI from backend
+          await loadProfile();
+
+          // Show success popup modal
+          document.getElementById("success-popup").style.display = "flex";
+          if (window.lucide) window.lucide.createIcons();
+        } else {
+          alert(data.error || "Failed to update profile. Please try again.");
+        }
+      } catch (e) {
+        console.error("Profile update error:", e);
+        alert("Backend server connection error. Please make sure the server is running.");
+      }
+    }
+
+    // Run on load
+    document.addEventListener("DOMContentLoaded", () => {
+      loadProfile();
+    });
+  </script>
 </body>
 </html>
