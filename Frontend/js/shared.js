@@ -115,9 +115,6 @@ function renderHeader() {
           <a href="ai-assistant.html" class="dropdown-link">
             <span class="dropdown-link-title">AI Telesales</span>
           </a>
-          <a href="telephony.html" class="dropdown-link">
-            <span class="dropdown-link-title">AI Telephony</span>
-          </a>
           <a href="promotions.html" class="dropdown-link">
             <span class="dropdown-link-title">Promotions & Offers</span>
           </a>
@@ -147,9 +144,6 @@ function renderHeader() {
         <div class="dropdown-menu">
           <a href="ai-assistant.html" class="dropdown-link">
             <span class="dropdown-link-title">AI Telesales</span>
-          </a>
-          <a href="telephony.html" class="dropdown-link">
-            <span class="dropdown-link-title">AI Telephony</span>
           </a>
           <a href="promotions.html" class="dropdown-link">
             <span class="dropdown-link-title">Promotions & Offers</span>

@@ -21,14 +21,27 @@ Open with Live Server
 
 Features:
 
-- User Registration
-- User Login
-- Lead Management
+- User Registration & Authentication
+- User Dashboard & Profile
+- Admin Dashboard
+- AI Chatbot
+- Browser-Based AI Voice Assistant
+- AI-Assisted Lead Qualification
+- Personalized Recommendations
 - Campaign Management
-- Event Invitations
-- Event Registrations
-- Dashboard Analytics
-- Customer Re-engagement
+- Event Management
+- Customer Re-Engagement Emails
+- Feedback Management
+
+Future Scope:
+- AI-powered telephony integration
+- Human seller integration
+- Automatic ordering
+- Advanced AI models
+- Multi-language support
+- Cloud deployment
+- CRM and ERP integration
+- Predictive analytics and business intelligence
 
 Tech Stack:
 
@@ -38,7 +51,7 @@ CSS
 JavaScript
 
 Backend:
-FastAPI
+Flask / Python
 
 Database:
 PostgreSQL

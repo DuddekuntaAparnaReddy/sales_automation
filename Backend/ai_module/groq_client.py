@@ -3,7 +3,7 @@ import json
 from groq import Groq
 
 # Use the API key provided by the user as default fallback
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 def generate_ai_response(prompt, system_prompt="You are a helpful assistant.", json_mode=False):
     """
@@ -21,8 +21,8 @@ def generate_ai_response(prompt, system_prompt="You are a helpful assistant.", j
             {"role": "user", "content": prompt}
         ]
         
-        # Using Llama 3.1 8B Model on Groq
-        model = "openai/gpt-oss-120b"
+        # Using Groq Model
+        model = "openai/gpt-oss-20b"
         
         kwargs = {
             "model": model,
@@ -34,7 +34,11 @@ def generate_ai_response(prompt, system_prompt="You are a helpful assistant.", j
             kwargs["response_format"] = {"type": "json_object"}
             
         chat_completion = client.chat.completions.create(**kwargs)
-        return chat_completion.choices[0].message.content
+        res_text = chat_completion.choices[0].message.content or ""
+        if not res_text.strip():
+            print("[GROQ CLIENT WARNING] Empty response from model. Utilizing mock fallback.")
+            return generate_mock_fallback(prompt, json_mode)
+        return res_text
     except Exception as e:
         print(f"[GROQ CLIENT ERROR] Connection failed: {e}. Utilizing mock fallback.")
         return generate_mock_fallback(prompt, json_mode)
@@ -74,12 +78,16 @@ def generate_ai_response_with_history(latest_message, conversation_history=None,
         messages.append({"role": "user", "content": latest_message})
 
         chat_completion = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model="openai/gpt-oss-20b",
             messages=messages,
             temperature=0.4,
-            max_tokens=90 if is_voice else 1200
+            max_tokens=300 if is_voice else 1200
         )
-        return chat_completion.choices[0].message.content
+        res_text = chat_completion.choices[0].message.content or ""
+        if not res_text.strip():
+            print("[GROQ CLIENT WARNING] Empty response from model. Utilizing mock fallback.")
+            return generate_mock_fallback_with_history(latest_message, conversation_history, is_voice=is_voice)
+        return res_text
 
     except Exception as e:
         print(f"[GROQ CLIENT ERROR] History call failed: {e}. Using mock fallback.")
@@ -212,57 +220,71 @@ def generate_mock_fallback_with_history(latest_message, conversation_history, is
             )
 
     # --- 5. Electronics / Laptop Category (Fallback) ---
-    # Detect budget
+    # Detect budget (handling commas like 60,000 and 'k' notation like 60k)
     budget = None
     import re
-    budget_matches = re.findall(r'[\u20B9₹]?\s*(\d{4,7})', all_text)
-    if budget_matches:
-        budget = int(budget_matches[-1])
+    clean_text_for_budget = re.sub(r'(\d+),(\d+)', r'\1\2', all_text)
+    k_matches = re.findall(r'(\d+)\s*k\b', clean_text_for_budget, re.IGNORECASE)
+    if k_matches:
+        budget = int(k_matches[-1]) * 1000
+    else:
+        budget_matches = re.findall(r'[\u20B9₹]?\s*(\d{4,7})', clean_text_for_budget)
+        if budget_matches:
+            budget = int(budget_matches[-1])
 
-    is_gaming    = "gaming" in all_lower
-    is_office    = "office" in all_lower or "work" in all_lower or "business" in all_lower
-    is_video     = "video editing" in all_lower or "editing" in all_lower
+    is_gaming    = "gaming" in all_lower or "game" in all_lower
+    is_office    = "office" in all_lower or "work" in all_lower or "business" in all_lower or "study" in all_lower
+    is_video     = "video editing" in all_lower or "editing" in all_lower or "render" in all_lower
+    is_laptop    = "laptop" in all_lower or "computer" in all_lower or "notebook" in all_lower or is_gaming or is_office or is_video
 
-    if is_gaming and budget:
-        if is_voice:
-            return f"I recommend the ASUS ROG Strix G15 for gaming under your {budget} budget, or the HP Victus 15. Would you like details on either?"
-        return (
-            f"Based on your gaming requirement and ₹{budget:,} budget, here are my top picks:\n\n"
-            "1. **ASUS ROG Strix G15** (₹85,000 approx)\n"
-            "   • AMD Ryzen 7 + NVIDIA RTX 3060 6GB • 144Hz IPS display • 16GB RAM, 512GB SSD\n"
-            "   ✅ Best all-round gaming performance in this range\n\n"
-            "2. **HP Victus 15** (₹75,000–90,000)\n"
-            "   • Intel i7 + RTX 3050 Ti • 144Hz display • 16GB RAM, 512GB SSD\n"
-            "   ✅ Great battery life + gaming blend\n\n"
-            "3. **Lenovo IdeaPad Gaming 3** (₹65,000–80,000)\n"
-            "   • Ryzen 5/7 + RTX 3050 • 120Hz display • 16GB RAM\n"
-            "   ✅ Budget-friendly option with solid GPU\n\n"
-            "Would you like me to compare any of these in more detail?"
-        )
-
-    if is_video and budget:
-        if is_voice:
-            return f"For video editing under {budget} rupees, I recommend the Apple MacBook Air M2 or the ASUS ProArt Studiobook. Would you prefer macOS or Windows?"
-        return (
-            f"For video editing under ₹{budget:,}, I recommend:\n\n"
-            "1. **Apple MacBook Air M2** (₹95,000) — Exceptional video export speed, colour-accurate display\n"
-            "2. **ASUS ProArt Studiobook** (₹90,000) — OLED display, RTX 3050, Pantone validated\n"
-            "3. **Dell XPS 15** (₹98,000) — 4K OLED, Intel i7, 16GB RAM\n\n"
-            "All three handle 4K editing smoothly. Would you prefer macOS or Windows?"
-        )
-
-    if is_office and budget:
-        if is_voice:
-            return f"For work under {budget} rupees, I recommend the Lenovo ThinkPad E14 or the HP EliteBook 840. Do you have a brand preference?"
-        return (
-            f"For office/work use under ₹{budget:,}, here are the best options:\n\n"
-            "1. **Lenovo ThinkPad E14** (₹65,000) — Keyboard champion, enterprise build quality\n"
-            "2. **HP EliteBook 840** (₹85,000) — MIL-SPEC durability, excellent security features\n"
-            "3. **Dell Inspiron 14** (₹55,000) — Lightweight, solid battery life\n\n"
-            "All come with at least 16GB RAM and 512GB SSD. Want more details on any?"
-        )
-
-    if "laptop" in all_lower and not is_gaming and not is_video and not is_office:
+    if is_laptop:
+        if is_gaming:
+            b_val = budget or 60000
+            if is_voice:
+                return f"For gaming around {b_val} rupees, I recommend the Lenovo IdeaPad Gaming 3 or ASUS TUF Gaming F15. Would you like to check specifications?"
+            return (
+                f"Based on your gaming requirement and ₹{b_val:,} budget, here are my top picks:\n\n"
+                "1. **Lenovo IdeaPad Gaming 3** (₹57,000)\n"
+                "   • AMD Ryzen 5 6600H + NVIDIA RTX 3050 4GB • 120Hz IPS • 8GB RAM, 512GB SSD\n"
+                "   ✅ Excellent budget gaming performance\n\n"
+                "2. **ASUS TUF Gaming F15** (₹59,000)\n"
+                "   • Intel Core i5 11th Gen + RTX 3050 • 144Hz IPS • 8GB RAM, 512GB SSD\n"
+                "   ✅ Durable build quality with military-grade toughness\n\n"
+                "3. **HP Victus 15** (₹58,000)\n"
+                "   • AMD Ryzen 5 7535U + RTX 2050/3050 • 144Hz display • 8GB RAM, 512GB SSD\n"
+                "   ✅ Sleek design suitable for work and gaming\n\n"
+                "Would you like me to compare any of these in detail?"
+            )
+        if is_video:
+            b_val = budget or 60000
+            if is_voice:
+                return f"For video editing around {b_val} rupees, I recommend the ASUS Vivobook Pro 15 or Lenovo IdeaPad Slim 5. Should I share specs?"
+            return (
+                f"For video editing around ₹{b_val:,}, here are recommended options:\n\n"
+                "1. **ASUS Vivobook Pro 15** (₹58,000) — OLED display, Ryzen 5, 16GB RAM\n"
+                "2. **Lenovo IdeaPad Slim 5** (₹62,000) — Intel i5 13th Gen, Iris Xe, 16GB RAM\n\n"
+                "Both feature color-accurate displays for editing. Which brand do you prefer?"
+            )
+        if is_office:
+            b_val = budget or 50000
+            if is_voice:
+                return f"For office work around {b_val} rupees, I recommend the Lenovo ThinkPad E14 or Dell Inspiron 14. Do you have a brand preference?"
+            return (
+                f"For office/work use around ₹{b_val:,}, here are top choices:\n\n"
+                "1. **Lenovo ThinkPad E14** (₹55,000) — Best-in-class keyboard, rugged build\n"
+                "2. **Dell Inspiron 14** (₹52,000) — Lightweight, solid battery life\n"
+                "3. **HP 15s** (₹48,000) — Intel i5 12th Gen, 16GB RAM, 512GB SSD\n\n"
+                "Would you like more details on any of these?"
+            )
+        if budget:
+            if is_voice:
+                return f"Under {budget} rupees, I recommend Lenovo IdeaPad Slim 3 or ASUS Vivobook 15. What will you primarily use it for?"
+            return (
+                f"Under ₹{budget:,}, here are great laptop choices:\n\n"
+                "1. **Lenovo IdeaPad Slim 3** (₹54,000) — Intel i5 12th Gen, 16GB RAM\n"
+                "2. **ASUS Vivobook 15** (₹52,000) — Ryzen 5, 16GB RAM, FHD Display\n\n"
+                "What will you primarily use the laptop for? (Gaming, Office work, Video editing, Study)"
+            )
         return "What will you primarily use the laptop for? (Gaming, Office work, Video editing, College/Study, General use)"
 
     if is_voice:

@@ -352,28 +352,3 @@ class SurveyInsight(db.Model):
             'recommendations': self.recommendations or [],
             'generated_at': self.generated_at.isoformat() if self.generated_at else None
         }
-
-class TelephonyCall(db.Model):
-    __tablename__ = 'telephony_calls'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
-    call_sid = db.Column(db.String(100), nullable=True)
-    phone_number = db.Column(db.String(50), nullable=False)
-    category = db.Column(db.String(50), default='General')
-    status = db.Column(db.String(30), default='Queued')
-    duration = db.Column(db.Integer, default=0)
-    recording_url = db.Column(db.String(255), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'call_sid': self.call_sid,
-            'phone_number': self.phone_number,
-            'category': self.category,
-            'status': self.status,
-            'duration': self.duration,
-            'recording_url': self.recording_url,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }

@@ -823,9 +823,6 @@
           <button class="tab-trigger" onclick="switchTab('voice')" id="tab-btn-voice">
             <i data-lucide="phone-call" style="width: 1.1rem; height: 1.1rem;"></i> Voice Assistant
           </button>
-          <button class="tab-trigger" onclick="window.location.href='telephony.html'" id="tab-btn-telephony">
-            <i data-lucide="phone-forwarded" style="width: 1.1rem; height: 1.1rem;"></i> AI Telephony
-          </button>
         </nav>
 
         <!-- Tab Content 1: Chat Assistant -->
@@ -951,7 +948,7 @@
   <!-- Dynamic Footer Bar -->
   <footer id="site-footer" class="site-footer"></footer>
 
-  <script src="js/shared.js"></script>
+  <script src="js/shared.js?v=99"></script>
   <script>
     // State management variables
     let chatSessions = [];
@@ -962,6 +959,7 @@
     let currentVoiceState = 'idle'; // idle, listening, processing, speaking
     let greetingFired = false;
     let accumulatedTranscript = "";
+    let isBotSpeaking = false; // Prevents mic from picking up bot's own TTS output
 
     // Wait until DOM and shared.js finish setup
     document.addEventListener('DOMContentLoaded', () => {
@@ -1336,7 +1334,7 @@
       }
     }
 
-    // --- VOICE TELEPHONY ASSISTANT LOGIC ---
+    // --- BROWSER-BASED AI VOICE ASSISTANT LOGIC ---
     function initVoiceAssistant() {
       const startBtn = document.getElementById('startCallBtn');
       const voiceSupportAlert = document.getElementById('voiceSupportAlert');
@@ -1359,6 +1357,12 @@
 
       recognition.onresult = async function(event) {
         if (!callActive) return;
+        // CRITICAL: Ignore any recognition results while the bot is speaking
+        // to prevent the mic from picking up the bot's own TTS speech as user input
+        if (isBotSpeaking) {
+          console.log("[Voice] Ignoring recognition result while bot is speaking.");
+          return;
+        }
         
         let transcript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -1408,10 +1412,10 @@
       };
 
       recognition.onend = function() {
-        // Auto-restart recognition if call is active and we are in listening mode
-        if (callActive && currentVoiceState === 'listening') {
+        // Auto-restart recognition if call is active, in listening mode, and bot is NOT speaking
+        if (callActive && currentVoiceState === 'listening' && !isBotSpeaking) {
           setTimeout(() => {
-            if (callActive && currentVoiceState === 'listening') {
+            if (callActive && currentVoiceState === 'listening' && !isBotSpeaking) {
               try {
                 recognition.start();
               } catch (e) {
@@ -1505,6 +1509,16 @@
 
       // Say initial greeting
       speakResponse("Hello, I am your Salesbot voice assistant. I am ready to answer your questions.");
+      
+      // Safety net: If browser TTS onend never fires (common Chrome bug),
+      // force-start recognition after 6 seconds so the mic is always active
+      setTimeout(() => {
+        if (callActive && currentVoiceState !== 'listening') {
+          isBotSpeaking = false;
+          setVoiceState('listening');
+          try { recognition.start(); } catch (e) {}
+        }
+      }, 6000);
     }
 
     async function endVoiceCall() {
@@ -1549,6 +1563,19 @@
       if (typeof speechSynthesis === 'undefined') return;
       
       speechSynthesis.cancel(); // Stop any pending utterance
+      
+      // Chrome bug: speechSynthesis sometimes pauses mid-utterance on long idle.
+      // Resume it proactively.
+      speechSynthesis.resume();
+
+      // CRITICAL: Mark bot as speaking so recognition ignores any captured audio
+      isBotSpeaking = true;
+      
+      // Stop recognition completely while bot is speaking to prevent echo
+      if (recognition) {
+        try { recognition.stop(); } catch (e) {}
+      }
+      
       const utterance = new SpeechSynthesisUtterance(text);
 
       // Find selected voice
@@ -1566,33 +1593,43 @@
         utterance.rate = parseFloat(slider.value);
       }
 
-      utterance.onstart = function() {
-        setVoiceState('speaking');
+      // Watchdog: estimate expected speech duration + buffer, then force-start mic
+      // Approximation: ~130 words/min for average TTS speed
+      const wordCount = text.split(/\s+/).length;
+      const rate = slider ? parseFloat(slider.value) : 1.0;
+      const estimatedMs = Math.max(3000, Math.ceil((wordCount / 130) * 60000 / rate) + 2000);
+      let watchdogTimer = null;
+
+      const startListeningAfterSpeech = () => {
+        if (watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
+        // Wait a short delay after TTS ends so residual speaker audio doesn't get picked up
+        setTimeout(() => {
+          isBotSpeaking = false;
+          if (callActive) {
+            setVoiceState('listening');
+            try { recognition.start(); } catch (e) {
+              console.error("Restart recognition failed: ", e);
+            }
+          } else {
+            setVoiceState('idle');
+          }
+        }, 500); // 500ms buffer after speech ends
       };
 
-      utterance.onend = function() {
-        if (callActive) {
-          setVoiceState('listening');
-          try {
-            recognition.start();
-          } catch (e) {
-            console.error("Restart recognition failed: ", e);
-          }
-        } else {
-          setVoiceState('idle');
-        }
+      utterance.onstart = function() {
+        setVoiceState('speaking');
+        // Set watchdog to fire after estimated speech time
+        watchdogTimer = setTimeout(() => {
+          console.warn("[Voice] TTS onend did not fire — watchdog forcing mic on.");
+          startListeningAfterSpeech();
+        }, estimatedMs);
       };
+
+      utterance.onend = startListeningAfterSpeech;
 
       utterance.onerror = function(event) {
         console.error("Utterance error: ", event);
-        if (callActive) {
-          setVoiceState('listening');
-          try {
-            recognition.start();
-          } catch (e) {}
-        } else {
-          setVoiceState('idle');
-        }
+        startListeningAfterSpeech();
       };
 
       speechSynthesis.speak(utterance);
